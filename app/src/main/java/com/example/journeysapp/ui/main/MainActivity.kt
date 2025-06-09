@@ -7,18 +7,18 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import com.example.journeysapp.data.model.Journey
+import com.example.journeysapp.ui.main.addJourney.AddNewJourneyBottomSheet
 import com.example.journeysapp.ui.theme.JourneysAppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
+
+    private val testJourneys = mutableStateListOf(*generateTestJourneys().toTypedArray())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,16 +33,18 @@ class MainActivity : ComponentActivity() {
                     }, modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     JourneysLazyColumn(
-                        journeyList = generateTestJourneys(),
+                        journeyList = testJourneys,
                         modifier = Modifier.padding(innerPadding)
                     )
 
                     if(mainViewModel.uiState.collectAsState().value.addBottomSheetOpen) {
-                        ModalBottomSheet(onDismissRequest = {
-                            mainViewModel.onEvent(UIEvent.OnAddSheetDismiss)
-                        }) {
-                            Text("KURWA ALE MIE PISZCZEL BOI")
-                        }
+                        AddNewJourneyBottomSheet(
+                            onDismissRequest = { mainViewModel.onEvent(UIEvent.OnAddSheetDismiss)},
+                            onJourneyCreated = {
+                                testJourneys.add(it)
+                                mainViewModel.onEvent(UIEvent.OnAddSheetDismiss)
+                            }
+                        )
                     }
                 }
             }
