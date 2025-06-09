@@ -27,7 +27,10 @@ import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardPadding
 
 @Composable
-fun MainBottomBar(modifier: Modifier = Modifier) {
+fun MainBottomBar(
+    onAddClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     BottomAppBar(
         actions = {
             // TODO those are mocked, to be replaced by actual actions
@@ -55,7 +58,7 @@ fun MainBottomBar(modifier: Modifier = Modifier) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {},
+                onClick = onAddClick,
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
             ) {
