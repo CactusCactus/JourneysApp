@@ -14,7 +14,9 @@ import androidx.compose.ui.Modifier
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.ui.main.addJourney.AddNewJourneyBottomSheet
 import com.example.journeysapp.ui.theme.JourneysAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 

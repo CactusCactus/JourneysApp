@@ -1,11 +1,15 @@
 package com.example.journeysapp.ui.main
 
 import androidx.lifecycle.ViewModel
+import com.example.journeysapp.data.repositories.JourneyRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(repository: JourneyRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
 
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
