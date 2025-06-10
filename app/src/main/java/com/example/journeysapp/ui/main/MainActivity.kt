@@ -52,6 +52,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun generateTestJourneys() = listOf(
-        Journey("Quitting smoking"), Journey("Running"), Journey("Reading")
+        Journey(name = "Quitting smoking"), Journey(name = "Running"), Journey(name = "Reading")
     )
 }

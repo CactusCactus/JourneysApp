@@ -92,6 +92,6 @@ fun JourneyRow(item: Journey, modifier: Modifier = Modifier) {
 
         StandardSpacer()
 
-        Text(item.name)
+        item.name?.let { Text(it) }
     }
 }

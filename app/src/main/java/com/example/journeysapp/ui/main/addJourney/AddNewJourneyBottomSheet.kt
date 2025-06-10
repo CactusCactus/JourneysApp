@@ -38,7 +38,7 @@ fun AddNewJourneyBottomSheet(
             StandardSpacer()
 
             Button(onClick = {
-                onJourneyCreated(Journey(journeyName.value))
+                onJourneyCreated(Journey(name = journeyName.value))
             }) {
                 Text(stringResource(R.string.create))
             }
