@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">JourneysApp</string>
+    <string name="app_name">Journeys</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="add_new_journey_title">Start a new Journey</string>
     <string name="create">Create</string>

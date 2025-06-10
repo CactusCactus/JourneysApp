@@ -15,6 +15,7 @@ import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyContextMenuOption
 import com.example.journeysapp.ui.main.composables.JourneysLazyColumn
 import com.example.journeysapp.ui.main.composables.MainBottomBar
+import com.example.journeysapp.ui.main.composables.MainTopBar
 import com.example.journeysapp.ui.main.composables.bottomSheets.AddNewJourneyBottomSheet
 import com.example.journeysapp.ui.main.composables.bottomSheets.JourneyContextMenuBottomSheet
 import com.example.journeysapp.ui.theme.AppTheme
@@ -30,6 +31,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 Scaffold(
+                    topBar = { MainTopBar() },
                     bottomBar = {
                         MainBottomBar(onAddClick = {
                             mainViewModel.onEvent(UIEvent.OnJourneyAddClick)
