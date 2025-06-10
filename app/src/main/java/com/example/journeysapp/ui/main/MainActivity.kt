@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.ui.main.addJourney.AddNewJourneyBottomSheet
@@ -19,8 +18,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
-
-    private val testJourneys = mutableStateListOf(*generateTestJourneys().toTypedArray())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,15 +32,15 @@ class MainActivity : ComponentActivity() {
                     }, modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     JourneysLazyColumn(
-                        journeyList = testJourneys,
+                        journeyList = mainViewModel.journeyList.toList(),
                         modifier = Modifier.padding(innerPadding)
                     )
 
-                    if(mainViewModel.uiState.collectAsState().value.addBottomSheetOpen) {
+                    if (mainViewModel.uiState.collectAsState().value.addBottomSheetOpen) {
                         AddNewJourneyBottomSheet(
-                            onDismissRequest = { mainViewModel.onEvent(UIEvent.OnAddSheetDismiss)},
+                            onDismissRequest = { mainViewModel.onEvent(UIEvent.OnAddSheetDismiss) },
                             onJourneyCreated = {
-                                testJourneys.add(it)
+                                mainViewModel.onEvent(UIEvent.OnJourneyCreated(it))
                                 mainViewModel.onEvent(UIEvent.OnAddSheetDismiss)
                             }
                         )
