@@ -17,7 +17,7 @@ import com.example.journeysapp.ui.main.composables.JourneysLazyColumn
 import com.example.journeysapp.ui.main.composables.MainBottomBar
 import com.example.journeysapp.ui.main.composables.bottomSheets.AddNewJourneyBottomSheet
 import com.example.journeysapp.ui.main.composables.bottomSheets.JourneyContextMenuBottomSheet
-import com.example.journeysapp.ui.theme.JourneysAppTheme
+import com.example.journeysapp.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            JourneysAppTheme {
+            AppTheme {
                 Scaffold(
                     bottomBar = {
                         MainBottomBar(onAddClick = {

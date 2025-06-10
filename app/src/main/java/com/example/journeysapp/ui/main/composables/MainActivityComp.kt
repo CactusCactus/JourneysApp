@@ -35,37 +35,37 @@ fun MainBottomBar(
 ) {
     BottomAppBar(
         actions = {
-        // TODO those are mocked, to be replaced by actual actions
-        IconButton(onClick = { /* do something */ }) {
-            Icon(Icons.Filled.Check, contentDescription = "Localized description")
-        }
-        IconButton(onClick = { /* do something */ }) {
-            Icon(
-                Icons.Filled.Edit,
-                contentDescription = "Localized description",
-            )
-        }
-        IconButton(onClick = { /* do something */ }) {
-            Icon(
-                Icons.Filled.Settings,
-                contentDescription = "Localized description",
-            )
-        }
-        IconButton(onClick = { /* do something */ }) {
-            Icon(
-                Icons.Filled.Search,
-                contentDescription = "Localized description",
-            )
-        }
-    }, floatingActionButton = {
-        FloatingActionButton(
-            onClick = onAddClick,
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-        ) {
-            Icon(Icons.Filled.Add, "Add")
-        }
-    }, modifier = modifier
+            // TODO those are mocked, to be replaced by actual actions
+            IconButton(onClick = { /* do something */ }) {
+                Icon(Icons.Filled.Check, contentDescription = "Localized description")
+            }
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = "Localized description",
+                )
+            }
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    Icons.Filled.Settings,
+                    contentDescription = "Localized description",
+                )
+            }
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    Icons.Filled.Search,
+                    contentDescription = "Localized description",
+                )
+            }
+        }, floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddClick,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+            ) {
+                Icon(Icons.Filled.Add, "Add")
+            }
+        }, modifier = modifier
     )
 }
 
@@ -81,6 +81,7 @@ fun JourneysLazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(all = standardPadding)
+                    .animateItem()
             )
         }
     }
