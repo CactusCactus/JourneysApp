@@ -23,4 +23,10 @@ class JourneyRepository @Inject constructor(@ApplicationContext applicationConte
             Timber.d("Inserted Journey: id=$it, name=${journey.name}")
         }
     }
+
+    suspend fun deleteJourney(journey: Journey) = withContext(Dispatchers.IO) {
+        database.journeyDao().delete(journey).also {
+            Timber.d("Deleted Journey: id=$it, name=${journey.name}")
+        }
+    }
 }

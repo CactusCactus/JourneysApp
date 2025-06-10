@@ -3,4 +3,5 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="add_new_journey_title">Start a new Journey</string>
     <string name="create">Create</string>
+    <string name="delete">Delete</string>
 </resources>

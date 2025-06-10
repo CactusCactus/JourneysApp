@@ -13,12 +13,14 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(val repository: JourneyRepository) : ViewModel() {
+class MainViewModel @Inject constructor(private val repository: JourneyRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
 
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     val journeyList = mutableStateListOf<Journey>()
+
+    var contextSelectedJourney: Journey? = null
 
     init {
         viewModelScope.launch {
@@ -29,7 +31,7 @@ class MainViewModel @Inject constructor(val repository: JourneyRepository) : Vie
 
     fun onEvent(event: UIEvent) {
         when (event) {
-            UIEvent.OnAddJourneyClick -> _uiState.value =
+            UIEvent.OnJourneyAddClick -> _uiState.value =
                 _uiState.value.copy(addBottomSheetOpen = true)
 
             UIEvent.OnAddSheetDismiss -> _uiState.value =
@@ -39,18 +41,39 @@ class MainViewModel @Inject constructor(val repository: JourneyRepository) : Vie
                 repository.insertJourney(event.journey)
                 journeyList.add(event.journey)
             }
+
+            UIEvent.OnContextMenuSheetDismiss -> _uiState.value =
+                _uiState.value.copy(contextMenuSheetOpen = false)
+
+            is UIEvent.OnJourneyContextMenuClick -> {
+                _uiState.value = _uiState.value.copy(contextMenuSheetOpen = true)
+                contextSelectedJourney = event.journey
+            }
+
+            is UIEvent.OnJourneyDeleted -> viewModelScope.launch {
+                repository.deleteJourney(event.journey)
+                journeyList.remove(event.journey)
+            }
         }
     }
 }
 
 data class UiState(
-    val addBottomSheetOpen: Boolean = false
+    val addBottomSheetOpen: Boolean = false,
+
+    val contextMenuSheetOpen: Boolean = false
 )
 
 sealed class UIEvent {
-    data object OnAddJourneyClick : UIEvent()
+    data object OnJourneyAddClick : UIEvent()
+
+    data class OnJourneyContextMenuClick(val journey: Journey) : UIEvent()
 
     data object OnAddSheetDismiss : UIEvent()
 
+    data object OnContextMenuSheetDismiss : UIEvent()
+
     data class OnJourneyCreated(val journey: Journey) : UIEvent()
+
+    data class OnJourneyDeleted(val journey: Journey) : UIEvent()
 }

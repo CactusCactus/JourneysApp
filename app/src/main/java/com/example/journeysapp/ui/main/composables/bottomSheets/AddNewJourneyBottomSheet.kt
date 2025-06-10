@@ -1,4 +1,4 @@
-package com.example.journeysapp.ui.main.addJourney
+package com.example.journeysapp.ui.main.composables.bottomSheets
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
