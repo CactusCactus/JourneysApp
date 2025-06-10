@@ -55,52 +55,58 @@ fun AddNewJourneyBottomSheet(
             val iconResList = JourneyIcons.entries.toList()
 
             var isIconPickerShowing by remember { mutableStateOf(false) }
+            var currentIconId by remember { mutableStateOf(R.drawable.ic_smile_24) }
 
-            AnimatedVisibility(isIconPickerShowing) {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 48.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(iconResList) {
-                        IconButton(
-                            onClick = { isIconPickerShowing = false }, modifier.size(48.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(it.icon),
-                                contentDescription = "Journey icon",
-                                modifier = modifier.fillMaxSize(),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                IconButton(onClick = {
+                    isIconPickerShowing = true
+                }, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        painter = painterResource(currentIconId),
+                        contentDescription = "Journey icon",
+                        modifier = modifier.fillMaxSize(),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
+
+                StandardSpacer()
+
+                OutlinedTextField(
+                    value = journeyName.value,
+                    onValueChange = { value: String -> journeyName.value = value },
+                    placeholder = { Text(stringResource(R.string.add_new_journey_hint)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
-            AnimatedVisibility(!isIconPickerShowing) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    IconButton(onClick = {
-                        isIconPickerShowing = true
-                    }, modifier = Modifier.size(48.dp)) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_smile_24),
-                            contentDescription = "Journey icon",
-                            modifier = modifier.fillMaxSize(),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
+            AnimatedVisibility(isIconPickerShowing) {
+                Column {
                     StandardSpacer()
 
-                    OutlinedTextField(
-                        value = journeyName.value,
-                        onValueChange = { value: String -> journeyName.value = value },
-                        placeholder = { Text(stringResource(R.string.add_new_journey_hint)) },
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = 48.dp),
                         modifier = Modifier.fillMaxWidth()
-                    )
+                    ) {
+                        items(iconResList) {
+                            IconButton(
+                                onClick = {
+                                    isIconPickerShowing = false
+                                    currentIconId = it.icon
+                                }, modifier.size(48.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(it.icon),
+                                    contentDescription = "Journey icon",
+                                    modifier = modifier.fillMaxSize(),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
