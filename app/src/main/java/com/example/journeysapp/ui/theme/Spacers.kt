@@ -6,4 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun StandardSpacer() = Spacer(modifier = Modifier.size(standardPadding))
+fun StandardSpacer(modifier: Modifier = Modifier) =
+    Spacer(modifier = modifier.size(standardPadding))
+
+@Composable
+fun DoubleStandardSpacer(modifier: Modifier = Modifier) =
+    Spacer(modifier = modifier.size(standardDoublePadding))
