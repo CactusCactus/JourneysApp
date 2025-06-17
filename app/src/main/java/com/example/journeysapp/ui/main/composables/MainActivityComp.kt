@@ -1,10 +1,13 @@
 package com.example.journeysapp.ui.main.composables
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -14,6 +17,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -27,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.ui.theme.StandardSpacer
@@ -50,37 +55,37 @@ fun MainBottomBar(
 ) {
     BottomAppBar(
         actions = {
-        // TODO those are mocked, to be replaced by actual actions
-        IconButton(onClick = { /* do something */ }) {
-            Icon(Icons.Filled.Check, contentDescription = "Localized description")
-        }
-        IconButton(onClick = { /* do something */ }) {
-            Icon(
-                Icons.Filled.Edit,
-                contentDescription = "Localized description",
-            )
-        }
-        IconButton(onClick = { /* do something */ }) {
-            Icon(
-                Icons.Filled.Settings,
-                contentDescription = "Localized description",
-            )
-        }
-        IconButton(onClick = { /* do something */ }) {
-            Icon(
-                Icons.Filled.Search,
-                contentDescription = "Localized description",
-            )
-        }
-    }, floatingActionButton = {
-        FloatingActionButton(
-            onClick = onAddClick,
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-        ) {
-            Icon(Icons.Filled.Add, "Add")
-        }
-    }, modifier = modifier
+            // TODO those are mocked, to be replaced by actual actions
+            IconButton(onClick = { /* do something */ }) {
+                Icon(Icons.Filled.Check, contentDescription = "Localized description")
+            }
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = "Localized description",
+                )
+            }
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    Icons.Filled.Settings,
+                    contentDescription = "Localized description",
+                )
+            }
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    Icons.Filled.Search,
+                    contentDescription = "Localized description",
+                )
+            }
+        }, floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddClick,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+            ) {
+                Icon(Icons.Filled.Add, "Add")
+            }
+        }, modifier = modifier
     )
 }
 
@@ -109,14 +114,25 @@ fun JourneyRow(item: Journey, onMoreMenuClicked: (Journey) -> Unit, modifier: Mo
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_smile_24),
-            contentDescription = item.name + " icon",
-        )
+        Box(
+            modifier = Modifier
+                .size(52.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = CardDefaults.shape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(item.icon.iconId),
+                contentDescription = item.name + " icon",
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
 
         StandardSpacer()
 
-        item.name?.let { Text(it, modifier = Modifier.weight(1f)) }
+        Text(item.name, modifier = Modifier.weight(1f))
 
         StandardSpacer()
 

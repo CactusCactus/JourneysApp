@@ -1,7 +1,10 @@
 package com.example.journeysapp.ui.main.composables.bottomSheets
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,28 +16,29 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
-import com.example.journeysapp.data.model.internal.JourneyIcons
+import com.example.journeysapp.data.model.internal.JourneyIcon
 import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardHalfPadding
 import com.example.journeysapp.ui.theme.standardPadding
@@ -50,8 +54,8 @@ fun AddJourneyBottomSheet(
         title = stringResource(R.string.add_new_journey_title),
         confirmButtonText = stringResource(R.string.create),
         onDismissRequest = onDismissRequest,
-        onConfirmRequest = { name: String, icon: Int ->
-            onJourneyCreatedRequest(Journey(name = name))
+        onConfirmRequest = { name: String, icon: JourneyIcon ->
+            onJourneyCreatedRequest(Journey(name = name, icon = icon))
         },
         modifier = modifier
     )
@@ -68,8 +72,8 @@ fun EditJourneyBottomSheet(
         title = stringResource(R.string.edit_new_journey_title) + " $journey",
         confirmButtonText = stringResource(R.string.confirm),
         onDismissRequest = onDismissRequest,
-        onConfirmRequest = { name: String, icon: Int ->
-            onJourneyEditedRequest(Journey(name = name))
+        onConfirmRequest = { name: String, icon: JourneyIcon ->
+            //TODO edit the icon
         },
         modifier = modifier
     )
@@ -82,7 +86,7 @@ private fun ModifyJourneyBottomSheet(
     title: String,
     confirmButtonText: String,
     onDismissRequest: () -> Unit,
-    onConfirmRequest: (name: String, icon: Int) -> Unit,
+    onConfirmRequest: (name: String, icon: JourneyIcon) -> Unit,
     modifier: Modifier = Modifier,
     namePlaceholder: String = stringResource(R.string.add_new_journey_hint),
 ) {
@@ -97,29 +101,17 @@ private fun ModifyJourneyBottomSheet(
             StandardSpacer()
 
             var isIconPickerShowing by remember { mutableStateOf(false) }
-            var currentIconId by remember { mutableIntStateOf(R.drawable.ic_smile_24) }
+            var currentIcon by remember { mutableStateOf(JourneyIcon.SMILE) }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                IconButton(
-                    onClick = { isIconPickerShowing = !isIconPickerShowing },
-                    modifier = Modifier.size(52.dp),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(currentIconId),
-                        contentDescription = "Journey icon",
-                        modifier = modifier
-                            .fillMaxSize()
-                            .padding(standardHalfPadding),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                JourneyIconButton(
+                    icon = currentIcon,
+                    onClick = { isIconPickerShowing = !isIconPickerShowing }
+                )
 
                 StandardSpacer()
 
@@ -138,7 +130,7 @@ private fun ModifyJourneyBottomSheet(
 
                     JourneyIconPicker {
                         isIconPickerShowing = false
-                        currentIconId = it
+                        currentIcon = it
                     }
                 }
             }
@@ -146,7 +138,7 @@ private fun ModifyJourneyBottomSheet(
             StandardSpacer()
 
             Button(
-                onClick = { onConfirmRequest(journeyName.value, currentIconId) },
+                onClick = { onConfirmRequest(journeyName.value, currentIcon) },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text(confirmButtonText)
@@ -158,8 +150,8 @@ private fun ModifyJourneyBottomSheet(
 }
 
 @Composable
-private fun JourneyIconPicker(onIconPicked: (Int) -> Unit) {
-    val iconResList = JourneyIcons.entries.toList()
+private fun JourneyIconPicker(onIconPicked: (JourneyIcon) -> Unit) {
+    val iconResList = JourneyIcon.entries.toList()
 
     Card {
         LazyVerticalGrid(
@@ -171,23 +163,30 @@ private fun JourneyIconPicker(onIconPicked: (Int) -> Unit) {
                 .fillMaxWidth()
         ) {
             items(iconResList) {
-                IconButton(
-                    onClick = { onIconPicked(it.icon) },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
-                    modifier = Modifier.size(52.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(it.icon),
-                        contentDescription = "Journey icon",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(standardHalfPadding),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                JourneyIconButton(icon = it, onClick = { onIconPicked(it) })
             }
         }
+    }
+}
+
+@Composable
+private fun JourneyIconButton(icon: JourneyIcon, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .minimumInteractiveComponentSize()
+            .size(52.dp)
+            .clip(CardDefaults.shape)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .clickable(onClick = onClick, role = Role.Button),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(icon.iconId),
+            contentDescription = "Journey icon",
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(standardHalfPadding),
+            tint = MaterialTheme.colorScheme.primary
+        )
     }
 }

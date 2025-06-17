@@ -14,7 +14,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.journeysapp.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmDialog(
     onConfirmListener: () -> Unit,
