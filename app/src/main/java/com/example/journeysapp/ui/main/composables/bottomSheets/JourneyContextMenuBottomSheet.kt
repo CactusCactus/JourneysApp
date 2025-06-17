@@ -2,20 +2,20 @@ package com.example.journeysapp.ui.main.composables.bottomSheets
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyContextMenuOption
+import com.example.journeysapp.ui.common.StandardListRow
 import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardPadding
 
@@ -28,11 +28,18 @@ fun JourneyContextMenuBottomSheet(
     modifier: Modifier = Modifier
 ) {
     ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        modifier = modifier
+        onDismissRequest = onDismissRequest, modifier = modifier
     ) {
-        Column(modifier = Modifier.padding(standardPadding)) {
-            journey.name?.let { Text(it) }
+        Column {
+            journey.name?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.displaySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(standardPadding)
+                )
+            }
 
             StandardSpacer()
 
@@ -49,9 +56,10 @@ fun JourneyContextMenuBottomSheet(
 
 @Composable
 fun JourneyContextMenuRow(option: JourneyContextMenuOption, modifier: Modifier = Modifier) {
-    Row(modifier = modifier) {
-        Icon(painterResource(option.icon), "${option.label} icon")
-        StandardSpacer()
-        Text(stringResource(option.label))
-    }
+    StandardListRow(
+        label = stringResource(option.label),
+        icon = option.icon,
+        iconTint = option.tint,
+        modifier = modifier,
+    )
 }

@@ -1,0 +1,42 @@
+package com.example.journeysapp.ui.common
+
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import com.example.journeysapp.ui.theme.StandardSpacer
+import com.example.journeysapp.ui.theme.standardPadding
+
+@Composable
+fun StandardListRow(
+    label: String,
+    modifier: Modifier = Modifier,
+    @DrawableRes icon: Int? = null,
+    @ColorRes iconTint: Int? = null
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(standardPadding)
+    ) {
+        if (icon != null && iconTint != null) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = "$label icon",
+                tint = colorResource(iconTint)
+            )
+        }
+        StandardSpacer()
+        Text(text = label, style = MaterialTheme.typography.titleLarge)
+    }
+}
