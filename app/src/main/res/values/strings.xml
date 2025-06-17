@@ -2,9 +2,10 @@
     <string name="app_name">Journeys</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="add_new_journey_title">Start a new Journey</string>
+    <string name="edit_new_journey_title">Edit</string>
     <string name="create">Create</string>
     <string name="delete">Delete</string>
-    <string name="add_new_journey_hint">Name your Journey</string>
+    <string name="add_new_journey_hint">Journey name</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="delete_journey_dialog_title">Delete Journey</string>

@@ -20,7 +20,7 @@ import com.example.journeysapp.ui.common.ConfirmDialog
 import com.example.journeysapp.ui.main.composables.JourneysLazyColumn
 import com.example.journeysapp.ui.main.composables.MainBottomBar
 import com.example.journeysapp.ui.main.composables.MainTopBar
-import com.example.journeysapp.ui.main.composables.bottomSheets.AddNewJourneyBottomSheet
+import com.example.journeysapp.ui.main.composables.bottomSheets.AddJourneyBottomSheet
 import com.example.journeysapp.ui.main.composables.bottomSheets.JourneyContextMenuBottomSheet
 import com.example.journeysapp.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -67,9 +67,9 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun SetUpAddJourneyBottomSheet() {
-        AddNewJourneyBottomSheet(
+        AddJourneyBottomSheet(
             onDismissRequest = { mainViewModel.onEvent(UIEvent.OnAddSheetDismiss) },
-            onJourneyCreated = {
+            onJourneyCreatedRequest = {
                 mainViewModel.onEvent(UIEvent.OnJourneyCreated(it))
                 mainViewModel.onEvent(UIEvent.OnAddSheetDismiss)
             })
