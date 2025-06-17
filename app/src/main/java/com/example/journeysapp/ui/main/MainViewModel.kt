@@ -31,6 +31,7 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
 
     fun onEvent(event: UIEvent) {
         when (event) {
+            // Create Journey Events
             UIEvent.OnJourneyAddClick -> _uiState.value =
                 _uiState.value.copy(addBottomSheetOpen = true)
 
@@ -42,6 +43,7 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
                 journeyList.add(event.journey)
             }
 
+            // Journey context menu events
             UIEvent.OnContextMenuSheetDismiss -> _uiState.value =
                 _uiState.value.copy(contextMenuSheetOpen = false)
 
@@ -50,9 +52,21 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
                 contextSelectedJourney = event.journey
             }
 
+            // Delete Journey events
+            UIEvent.OnJourneyDeleteClick ->
+                _uiState.value = _uiState.value.copy(confirmDeleteDialogShowing = true)
+
+            UIEvent.OnDeleteJourneyDialogDismiss ->
+                _uiState.value = _uiState.value.copy(confirmDeleteDialogShowing = false)
+
             is UIEvent.OnJourneyDeleted -> viewModelScope.launch {
                 repository.deleteJourney(event.journey)
                 journeyList.remove(event.journey)
+
+                _uiState.value = _uiState.value.copy(
+                    contextMenuSheetOpen = false,
+                    confirmDeleteDialogShowing = false
+                )
             }
         }
     }
@@ -61,15 +75,21 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
 data class UiState(
     val addBottomSheetOpen: Boolean = false,
 
-    val contextMenuSheetOpen: Boolean = false
+    val contextMenuSheetOpen: Boolean = false,
+
+    val confirmDeleteDialogShowing: Boolean = false
 )
 
 sealed class UIEvent {
     data object OnJourneyAddClick : UIEvent()
 
+    data object OnJourneyDeleteClick : UIEvent()
+
     data class OnJourneyContextMenuClick(val journey: Journey) : UIEvent()
 
     data object OnAddSheetDismiss : UIEvent()
+
+    data object OnDeleteJourneyDialogDismiss : UIEvent()
 
     data object OnContextMenuSheetDismiss : UIEvent()
 
