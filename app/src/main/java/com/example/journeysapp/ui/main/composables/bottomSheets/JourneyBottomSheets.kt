@@ -71,7 +71,7 @@ fun AddJourneyBottomSheet(
         confirmButtonText = stringResource(R.string.create),
         onDismissRequest = onDismissRequest,
         onConfirmRequest = { name: String, icon: JourneyIcon, goal: Goal ->
-            onJourneyCreatedRequest(Journey(name = name, icon = icon))
+            onJourneyCreatedRequest(Journey(name = name, icon = icon, goal = goal))
         },
         modifier = modifier
     )
@@ -89,10 +89,11 @@ fun EditJourneyBottomSheet(
         confirmButtonText = stringResource(R.string.confirm),
         onDismissRequest = onDismissRequest,
         onConfirmRequest = { name: String, icon: JourneyIcon, goal: Goal ->
-            onJourneyEditedRequest(journey.copy(name = name, icon = icon))
+            onJourneyEditedRequest(journey.copy(name = name, icon = icon, goal = goal))
         },
         journeyName = journey.name,
         journeyIcon = journey.icon,
+        journeyGoal = journey.goal,
         modifier = modifier
     )
 }
@@ -163,6 +164,7 @@ private fun ModifyJourneyBottomSheet(
             var currentJourneyGoal by remember { mutableStateOf(journeyGoal) }
 
             GoalFrequencyInputRow(
+                currentGoal = currentJourneyGoal,
                 onGoalTypeChanged = {
                     currentJourneyGoal = currentJourneyGoal.copy(goalType = it)
                 },
@@ -196,6 +198,7 @@ private fun ModifyJourneyBottomSheet(
 
 @Composable
 private fun GoalFrequencyInputRow(
+    currentGoal: Goal,
     onGoalTypeChanged: (GoalType) -> Unit,
     onValueChanged: (Int) -> Unit,
     onFrequencyChanged: (GoalFrequency) -> Unit
@@ -207,7 +210,10 @@ private fun GoalFrequencyInputRow(
     )
     StandardQuarterSpacer()
 
-    GoalTypeSegmentedButtonRow(onGoalTypeChanged = onGoalTypeChanged)
+    GoalTypeSegmentedButtonRow(
+        initialGoalType = currentGoal.goalType,
+        onGoalTypeChanged = onGoalTypeChanged
+    )
 
     StandardSpacer()
 
@@ -219,7 +225,7 @@ private fun GoalFrequencyInputRow(
 
     StandardQuarterSpacer()
 
-    GoalValueInputRow(initialValue = 1, onValueChanged = onValueChanged)
+    GoalValueInputRow(initialValue = currentGoal.value, onValueChanged = onValueChanged)
 
     StandardSpacer()
 
@@ -230,15 +236,19 @@ private fun GoalFrequencyInputRow(
     )
     StandardQuarterSpacer()
 
-    GoalFrequencySegmentedButtonRow(onFrequencyChanged = onFrequencyChanged)
+    GoalFrequencySegmentedButtonRow(
+        iniGoalFrequency = currentGoal.goalFrequency,
+        onFrequencyChanged = onFrequencyChanged
+    )
 }
 
 @Composable
 private fun GoalFrequencySegmentedButtonRow(
+    iniGoalFrequency: GoalFrequency,
     onFrequencyChanged: (GoalFrequency) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selectedIndex by remember { mutableIntStateOf(0) }
+    var selectedIndex by remember { mutableIntStateOf(iniGoalFrequency.ordinal) }
     val options = GoalFrequency.entries.map { it.toString(LocalContext.current) }
 
     SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
@@ -261,10 +271,11 @@ private fun GoalFrequencySegmentedButtonRow(
 
 @Composable
 private fun GoalTypeSegmentedButtonRow(
+    initialGoalType: GoalType,
     onGoalTypeChanged: (GoalType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selectedIndex by remember { mutableIntStateOf(0) }
+    var selectedIndex by remember { mutableIntStateOf(initialGoalType.ordinal) }
     val options = GoalType.entries.map { it.toString(LocalContext.current) }
 
     SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {

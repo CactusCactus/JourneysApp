@@ -2,14 +2,10 @@ package com.example.journeysapp.data.model
 
 import android.content.Context
 import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import com.example.journeysapp.R
 
-@Entity
 data class Goal(
-    @PrimaryKey(autoGenerate = true) val uid: Int = 0,
     @ColumnInfo(name = "goal_type") val goalType: GoalType,
     @ColumnInfo(name = "value") val value: Int,
     @ColumnInfo(name = "goal_frequency") val goalFrequency: GoalFrequency
