@@ -99,7 +99,7 @@ private fun ModifyJourneyBottomSheet(
     ) {
         Column(modifier = Modifier.padding(standardPadding)) {
 
-            val selectedJourneyName = remember { mutableStateOf(journeyName) }
+            var selectedJourneyName by remember { mutableStateOf(journeyName) }
             var selectedIcon by remember { mutableStateOf(journeyIcon) }
             var isIconPickerShowing by remember { mutableStateOf(false) }
 
@@ -107,30 +107,16 @@ private fun ModifyJourneyBottomSheet(
 
             StandardSpacer()
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                JourneyIconButton(
-                    icon = selectedIcon,
-                    onClick = { isIconPickerShowing = !isIconPickerShowing }
-                )
-
-                StandardSpacer()
-
-                OutlinedTextField(
-                    value = selectedJourneyName.value,
-                    onValueChange = { value: String -> selectedJourneyName.value = value },
-                    placeholder = { Text(namePlaceholder) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            IconNameInputRow(
+                journeyName = selectedJourneyName,
+                journeyNamePlaceholder = namePlaceholder,
+                selectedIcon = selectedIcon,
+                onIconClicked = { isIconPickerShowing = !isIconPickerShowing },
+                onNameValueChanged = { value: String -> selectedJourneyName = value })
 
             AnimatedVisibility(isIconPickerShowing) {
                 Column {
                     StandardSpacer()
-
                     JourneyIconPicker {
                         isIconPickerShowing = false
                         selectedIcon = it
@@ -141,7 +127,7 @@ private fun ModifyJourneyBottomSheet(
             StandardSpacer()
 
             Button(
-                onClick = { onConfirmRequest(selectedJourneyName.value, selectedIcon) },
+                onClick = { onConfirmRequest(selectedJourneyName, selectedIcon) },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text(confirmButtonText)
@@ -149,6 +135,35 @@ private fun ModifyJourneyBottomSheet(
 
             StandardSpacer()
         }
+    }
+}
+
+@Composable
+private fun IconNameInputRow(
+    selectedIcon: JourneyIcon,
+    journeyName: String,
+    journeyNamePlaceholder: String,
+    onIconClicked: () -> Unit,
+    onNameValueChanged: (String) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        JourneyIconButton(
+            icon = selectedIcon,
+            onClick = onIconClicked
+        )
+
+        StandardSpacer()
+
+        OutlinedTextField(
+            value = journeyName,
+            onValueChange = onNameValueChanged,
+            placeholder = { Text(journeyNamePlaceholder) },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
