@@ -218,13 +218,6 @@ private fun GoalFrequencyInputRow(
     StandardSpacer()
 
     // Goal value
-    Text(
-        text = stringResource(R.string.new_journey_goal_value_hint),
-        style = MaterialTheme.typography.bodyMedium
-    )
-
-    StandardQuarterSpacer()
-
     GoalValueInputRow(initialValue = currentGoal.value, onValueChanged = onValueChanged)
 
     StandardSpacer()
