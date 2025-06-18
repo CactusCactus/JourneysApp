@@ -21,6 +21,7 @@ import com.example.journeysapp.ui.main.composables.JourneysLazyColumn
 import com.example.journeysapp.ui.main.composables.MainBottomBar
 import com.example.journeysapp.ui.main.composables.MainTopBar
 import com.example.journeysapp.ui.main.composables.bottomSheets.AddJourneyBottomSheet
+import com.example.journeysapp.ui.main.composables.bottomSheets.EditJourneyBottomSheet
 import com.example.journeysapp.ui.main.composables.bottomSheets.JourneyContextMenuBottomSheet
 import com.example.journeysapp.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,7 +32,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+
         setContent {
             AppTheme {
                 Scaffold(
@@ -50,11 +53,17 @@ class MainActivity : ComponentActivity() {
                     val uiState = mainViewModel.uiState.collectAsState().value
 
                     if (uiState.addBottomSheetOpen) {
-                        SetUpAddJourneyBottomSheet()
+                        ShowAddJourneyBottomSheet()
+                    }
+
+                    val journeyToEdit = mainViewModel.contextSelectedJourney
+
+                    if (uiState.editBottomSheetOpen && journeyToEdit != null) {
+                        ShowEditJourneyBottomSheet(journeyToEdit)
                     }
 
                     if (uiState.contextMenuSheetOpen) {
-                        SetUpContextMenuBottomSheet()
+                        ShowContextMenuBottomSheet()
                     }
 
                     if (uiState.confirmDeleteDialogShowing) {
@@ -66,7 +75,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun SetUpAddJourneyBottomSheet() {
+    private fun ShowAddJourneyBottomSheet() {
         AddJourneyBottomSheet(
             onDismissRequest = { mainViewModel.onEvent(UIEvent.OnAddSheetDismiss) },
             onJourneyCreatedRequest = {
@@ -76,15 +85,31 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun SetUpContextMenuBottomSheet() {
+    private fun ShowEditJourneyBottomSheet(journeyToEdit: Journey) {
+        EditJourneyBottomSheet(
+            journey = journeyToEdit,
+            onDismissRequest = { mainViewModel.onEvent(UIEvent.OnEditSheetDismiss) },
+            onJourneyEditedRequest = {
+                mainViewModel.onEvent(UIEvent.OnJourneyEdited(it))
+                mainViewModel.onEvent(UIEvent.OnEditSheetDismiss)
+            }
+        )
+    }
+
+    @Composable
+    private fun ShowContextMenuBottomSheet() {
         mainViewModel.contextSelectedJourney?.let {
             JourneyContextMenuBottomSheet(
                 journey = it,
                 onDismissRequest = { mainViewModel.onEvent(UIEvent.OnContextMenuSheetDismiss) },
                 onMenuOptionClick = { journey: Journey, option: JourneyContextMenuOption ->
                     when (option) {
-                        JourneyContextMenuOption.DELETE -> {
+                        JourneyContextMenuOption.DELETE ->
                             mainViewModel.onEvent(UIEvent.OnJourneyDeleteClick)
+
+                        JourneyContextMenuOption.EDIT -> {
+                            mainViewModel.onEvent(UIEvent.OnJourneyEditClick(journey))
+                            mainViewModel.onEvent(UIEvent.OnContextMenuSheetDismiss)
                         }
                     }
                 })

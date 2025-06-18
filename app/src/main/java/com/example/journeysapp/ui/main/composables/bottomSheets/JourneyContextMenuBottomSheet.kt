@@ -31,15 +31,13 @@ fun JourneyContextMenuBottomSheet(
         onDismissRequest = onDismissRequest, modifier = modifier
     ) {
         Column {
-            journey.name?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.displaySmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(standardPadding)
-                )
-            }
+            Text(
+                text = journey.name,
+                style = MaterialTheme.typography.displaySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(standardPadding)
+            )
 
             StandardSpacer()
 

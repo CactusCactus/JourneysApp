@@ -22,6 +22,8 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
 
     var contextSelectedJourney: Journey? = null
 
+    var editedJourney: Journey? = null
+
     init {
         viewModelScope.launch {
             journeyList.clear()
@@ -68,12 +70,33 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
                     confirmDeleteDialogShowing = false
                 )
             }
+
+            // Edit Journey edit
+            is UIEvent.OnJourneyEditClick -> {
+                editedJourney = event.editedJourney
+                _uiState.value = _uiState.value.copy(editBottomSheetOpen = true)
+            }
+
+            UIEvent.OnEditSheetDismiss -> _uiState.value = _uiState.value.copy(
+                editBottomSheetOpen = false
+            )
+
+            is UIEvent.OnJourneyEdited -> viewModelScope.launch {
+                repository.updateJourney(event.journey)
+
+                if (editedJourney != null) {
+                    journeyList[journeyList.indexOf(editedJourney)] = event.journey
+                    editedJourney = null
+                }
+            }
         }
     }
 }
 
 data class UiState(
     val addBottomSheetOpen: Boolean = false,
+
+    val editBottomSheetOpen: Boolean = false,
 
     val contextMenuSheetOpen: Boolean = false,
 
@@ -83,11 +106,17 @@ data class UiState(
 sealed class UIEvent {
     data object OnJourneyAddClick : UIEvent()
 
+    data object OnAddSheetDismiss : UIEvent()
+
+    data class OnJourneyEditClick(val editedJourney: Journey) : UIEvent()
+
+    data class OnJourneyEdited(val journey: Journey) : UIEvent()
+
+    data object OnEditSheetDismiss : UIEvent()
+
     data object OnJourneyDeleteClick : UIEvent()
 
     data class OnJourneyContextMenuClick(val journey: Journey) : UIEvent()
-
-    data object OnAddSheetDismiss : UIEvent()
 
     data object OnDeleteJourneyDialogDismiss : UIEvent()
 

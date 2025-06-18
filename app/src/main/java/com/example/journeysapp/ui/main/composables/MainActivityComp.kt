@@ -1,7 +1,6 @@
 package com.example.journeysapp.ui.main.composables
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.ui.theme.StandardSpacer
+import com.example.journeysapp.ui.theme.standardHalfPadding
 import com.example.journeysapp.ui.theme.standardPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,9 +136,12 @@ fun JourneyRow(item: Journey, onMoreMenuClicked: (Journey) -> Unit, modifier: Mo
 
         StandardSpacer()
 
-        Icon(
-            painter = painterResource(R.drawable.ic_more_vert_24),
-            contentDescription = item.name + " more menu",
-            modifier = Modifier.clickable { onMoreMenuClicked(item) })
+        IconButton(onClick = { onMoreMenuClicked(item) }, modifier = Modifier.size(48.dp)) {
+            Icon(
+                painter = painterResource(R.drawable.ic_more_vert_24),
+                contentDescription = item.name + " more menu",
+                modifier = Modifier.padding(standardHalfPadding)
+            )
+        }
     }
 }

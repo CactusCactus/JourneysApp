@@ -69,12 +69,14 @@ fun EditJourneyBottomSheet(
     modifier: Modifier = Modifier
 ) {
     ModifyJourneyBottomSheet(
-        title = stringResource(R.string.edit_new_journey_title) + " $journey",
+        title = stringResource(R.string.edit_new_journey_title) + " ${journey.name}",
         confirmButtonText = stringResource(R.string.confirm),
         onDismissRequest = onDismissRequest,
         onConfirmRequest = { name: String, icon: JourneyIcon ->
-            //TODO edit the icon
+            onJourneyEditedRequest(journey.copy(name = name, icon = icon))
         },
+        journeyName = journey.name,
+        journeyIcon = journey.icon,
         modifier = modifier
     )
 }
@@ -88,20 +90,22 @@ private fun ModifyJourneyBottomSheet(
     onDismissRequest: () -> Unit,
     onConfirmRequest: (name: String, icon: JourneyIcon) -> Unit,
     modifier: Modifier = Modifier,
+    journeyIcon: JourneyIcon = JourneyIcon.SMILE,
+    journeyName: String = "",
     namePlaceholder: String = stringResource(R.string.add_new_journey_hint),
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest, modifier = modifier
     ) {
         Column(modifier = Modifier.padding(standardPadding)) {
+
+            val selectedJourneyName = remember { mutableStateOf(journeyName) }
+            var selectedIcon by remember { mutableStateOf(journeyIcon) }
+            var isIconPickerShowing by remember { mutableStateOf(false) }
+
             Text(text = title, style = MaterialTheme.typography.displaySmall)
 
-            val journeyName = remember { mutableStateOf("") }
-
             StandardSpacer()
-
-            var isIconPickerShowing by remember { mutableStateOf(false) }
-            var currentIcon by remember { mutableStateOf(JourneyIcon.SMILE) }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -109,28 +113,27 @@ private fun ModifyJourneyBottomSheet(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 JourneyIconButton(
-                    icon = currentIcon,
+                    icon = selectedIcon,
                     onClick = { isIconPickerShowing = !isIconPickerShowing }
                 )
 
                 StandardSpacer()
 
                 OutlinedTextField(
-                    value = journeyName.value,
-                    onValueChange = { value: String -> journeyName.value = value },
+                    value = selectedJourneyName.value,
+                    onValueChange = { value: String -> selectedJourneyName.value = value },
                     placeholder = { Text(namePlaceholder) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
             AnimatedVisibility(isIconPickerShowing) {
-
                 Column {
                     StandardSpacer()
 
                     JourneyIconPicker {
                         isIconPickerShowing = false
-                        currentIcon = it
+                        selectedIcon = it
                     }
                 }
             }
@@ -138,7 +141,7 @@ private fun ModifyJourneyBottomSheet(
             StandardSpacer()
 
             Button(
-                onClick = { onConfirmRequest(journeyName.value, currentIcon) },
+                onClick = { onConfirmRequest(selectedJourneyName.value, selectedIcon) },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text(confirmButtonText)
