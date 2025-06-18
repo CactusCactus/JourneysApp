@@ -48,6 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import com.example.journeysapp.R
+import com.example.journeysapp.data.model.Goal
 import com.example.journeysapp.data.model.GoalFrequency
 import com.example.journeysapp.data.model.GoalType
 import com.example.journeysapp.data.model.Journey
@@ -69,7 +70,7 @@ fun AddJourneyBottomSheet(
         title = stringResource(R.string.add_new_journey_title),
         confirmButtonText = stringResource(R.string.create),
         onDismissRequest = onDismissRequest,
-        onConfirmRequest = { name: String, icon: JourneyIcon ->
+        onConfirmRequest = { name: String, icon: JourneyIcon, goal: Goal ->
             onJourneyCreatedRequest(Journey(name = name, icon = icon))
         },
         modifier = modifier
@@ -87,7 +88,7 @@ fun EditJourneyBottomSheet(
         title = stringResource(R.string.edit_new_journey_title) + " ${journey.name}",
         confirmButtonText = stringResource(R.string.confirm),
         onDismissRequest = onDismissRequest,
-        onConfirmRequest = { name: String, icon: JourneyIcon ->
+        onConfirmRequest = { name: String, icon: JourneyIcon, goal: Goal ->
             onJourneyEditedRequest(journey.copy(name = name, icon = icon))
         },
         journeyName = journey.name,
@@ -103,10 +104,15 @@ private fun ModifyJourneyBottomSheet(
     title: String,
     confirmButtonText: String,
     onDismissRequest: () -> Unit,
-    onConfirmRequest: (name: String, icon: JourneyIcon) -> Unit,
+    onConfirmRequest: (name: String, icon: JourneyIcon, goal: Goal) -> Unit,
     modifier: Modifier = Modifier,
     journeyIcon: JourneyIcon = JourneyIcon.SMILE,
     journeyName: String = "",
+    journeyGoal: Goal = Goal(
+        goalType = GoalType.LESS_THAN,
+        value = 10,
+        goalFrequency = GoalFrequency.DAILY
+    ),
     namePlaceholder: String = stringResource(R.string.add_new_journey_hint),
 ) {
     val sheetState = rememberModalBottomSheetState(
@@ -154,51 +160,30 @@ private fun ModifyJourneyBottomSheet(
 
             StandardSpacer()
 
-            // Goal input views
-            // Goal type
-            Text(
-                text = stringResource(R.string.new_journey_goal_description),
-                style = MaterialTheme.typography.bodyMedium
-            )
-            StandardQuarterSpacer()
+            var currentJourneyGoal by remember { mutableStateOf(journeyGoal) }
 
-            GoalTypeSegmentedButtonRow(onGoalTypeChanged = {
-                //TODO read type
-            })
-
-            StandardSpacer()
-
-            // Goal value
-            Text(
-                text = stringResource(R.string.new_journey_goal_value_hint),
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            StandardQuarterSpacer()
-
-            GoalValueInputRow(
-                initialValue = 1,
+            GoalFrequencyInputRow(
+                onGoalTypeChanged = {
+                    currentJourneyGoal = currentJourneyGoal.copy(goalType = it)
+                },
                 onValueChanged = {
-                    //TODO
-                })
-
-            StandardSpacer()
-
-            // Goal frequency
-            Text(
-                text = stringResource(R.string.new_journey_check_in_description),
-                style = MaterialTheme.typography.bodyMedium
+                    currentJourneyGoal = currentJourneyGoal.copy(value = it)
+                },
+                onFrequencyChanged = {
+                    currentJourneyGoal = currentJourneyGoal.copy(goalFrequency = it)
+                }
             )
-            StandardQuarterSpacer()
-
-            GoalFrequencySegmentedButtonRow(onFrequencyChanged = {
-                //TODO read frequency
-            })
 
             StandardSpacer()
 
             Button(
-                onClick = { onConfirmRequest(selectedJourneyName, selectedIcon) },
+                onClick = {
+                    onConfirmRequest(
+                        selectedJourneyName,
+                        selectedIcon,
+                        currentJourneyGoal
+                    )
+                },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text(confirmButtonText)
@@ -207,6 +192,45 @@ private fun ModifyJourneyBottomSheet(
             StandardSpacer()
         }
     }
+}
+
+@Composable
+private fun GoalFrequencyInputRow(
+    onGoalTypeChanged: (GoalType) -> Unit,
+    onValueChanged: (Int) -> Unit,
+    onFrequencyChanged: (GoalFrequency) -> Unit
+) {
+    // Goal type
+    Text(
+        text = stringResource(R.string.new_journey_goal_description),
+        style = MaterialTheme.typography.bodyMedium
+    )
+    StandardQuarterSpacer()
+
+    GoalTypeSegmentedButtonRow(onGoalTypeChanged = onGoalTypeChanged)
+
+    StandardSpacer()
+
+    // Goal value
+    Text(
+        text = stringResource(R.string.new_journey_goal_value_hint),
+        style = MaterialTheme.typography.bodyMedium
+    )
+
+    StandardQuarterSpacer()
+
+    GoalValueInputRow(initialValue = 1, onValueChanged = onValueChanged)
+
+    StandardSpacer()
+
+    // Goal frequency
+    Text(
+        text = stringResource(R.string.new_journey_check_in_description),
+        style = MaterialTheme.typography.bodyMedium
+    )
+    StandardQuarterSpacer()
+
+    GoalFrequencySegmentedButtonRow(onFrequencyChanged = onFrequencyChanged)
 }
 
 @Composable
