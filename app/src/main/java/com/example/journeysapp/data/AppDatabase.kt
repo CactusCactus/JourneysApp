@@ -6,11 +6,17 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.journeysapp.data.dao.JourneyDao
+import com.example.journeysapp.data.model.GoalFrequencyTypeConverter
+import com.example.journeysapp.data.model.GoalTypeConverter
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyIconTypeConverter
 
 @Database(entities = [Journey::class], version = 1)
-@TypeConverters(JourneyIconTypeConverter::class)
+@TypeConverters(
+    JourneyIconTypeConverter::class,
+    GoalFrequencyTypeConverter::class,
+    GoalTypeConverter::class
+)
 abstract class AppDatabase : RoomDatabase() {
     companion object {
         private const val APP_DATABASE_NAME = "JOURNEY_APP_DATABASE"

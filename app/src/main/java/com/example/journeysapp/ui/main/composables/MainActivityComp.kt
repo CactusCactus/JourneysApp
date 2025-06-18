@@ -11,10 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,28 +51,7 @@ fun MainBottomBar(
 ) {
     BottomAppBar(
         actions = {
-            // TODO those are mocked, to be replaced by actual actions
-            IconButton(onClick = { /* do something */ }) {
-                Icon(Icons.Filled.Check, contentDescription = "Localized description")
-            }
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    Icons.Filled.Edit,
-                    contentDescription = "Localized description",
-                )
-            }
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    Icons.Filled.Settings,
-                    contentDescription = "Localized description",
-                )
-            }
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    Icons.Filled.Search,
-                    contentDescription = "Localized description",
-                )
-            }
+            // TODO action for a group select
         }, floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddClick,
