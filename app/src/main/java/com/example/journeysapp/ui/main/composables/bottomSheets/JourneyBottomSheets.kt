@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -22,23 +24,36 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.text.isDigitsOnly
 import com.example.journeysapp.R
+import com.example.journeysapp.data.model.GoalFrequency
+import com.example.journeysapp.data.model.GoalType
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyIcon
+import com.example.journeysapp.ui.theme.StandardHalfSpacer
+import com.example.journeysapp.ui.theme.StandardQuarterSpacer
 import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardHalfPadding
 import com.example.journeysapp.ui.theme.standardPadding
@@ -94,8 +109,13 @@ private fun ModifyJourneyBottomSheet(
     journeyName: String = "",
     namePlaceholder: String = stringResource(R.string.add_new_journey_hint),
 ) {
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     ModalBottomSheet(
-        onDismissRequest = onDismissRequest, modifier = modifier
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        modifier = modifier
     ) {
         Column(modifier = Modifier.padding(standardPadding)) {
 
@@ -106,6 +126,14 @@ private fun ModifyJourneyBottomSheet(
             Text(text = title, style = MaterialTheme.typography.displaySmall)
 
             StandardSpacer()
+
+            // Icon and name input
+            Text(
+                text = stringResource(R.string.new_journey_name_description),
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            StandardHalfSpacer()
 
             IconNameInputRow(
                 journeyName = selectedJourneyName,
@@ -126,6 +154,49 @@ private fun ModifyJourneyBottomSheet(
 
             StandardSpacer()
 
+            // Goal input views
+            // Goal type
+            Text(
+                text = stringResource(R.string.new_journey_goal_description),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            StandardQuarterSpacer()
+
+            GoalTypeSegmentedButtonRow(onGoalTypeChanged = {
+                //TODO read type
+            })
+
+            StandardSpacer()
+
+            // Goal value
+            Text(
+                text = stringResource(R.string.new_journey_goal_value_hint),
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            StandardQuarterSpacer()
+
+            GoalValueInputRow(
+                initialValue = 1,
+                onValueChanged = {
+                    //TODO
+                })
+
+            StandardSpacer()
+
+            // Goal frequency
+            Text(
+                text = stringResource(R.string.new_journey_check_in_description),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            StandardQuarterSpacer()
+
+            GoalFrequencySegmentedButtonRow(onFrequencyChanged = {
+                //TODO read frequency
+            })
+
+            StandardSpacer()
+
             Button(
                 onClick = { onConfirmRequest(selectedJourneyName, selectedIcon) },
                 modifier = Modifier.align(Alignment.End)
@@ -136,6 +207,111 @@ private fun ModifyJourneyBottomSheet(
             StandardSpacer()
         }
     }
+}
+
+@Composable
+private fun GoalFrequencySegmentedButtonRow(
+    onFrequencyChanged: (GoalFrequency) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    val options = GoalFrequency.entries.map { it.toString(LocalContext.current) }
+
+    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
+        options.forEachIndexed { index, option ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = options.size
+                ),
+                onClick = {
+                    onFrequencyChanged(GoalFrequency.entries[index])
+                    selectedIndex = index
+                },
+                selected = index == selectedIndex,
+                label = { Text(option) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun GoalTypeSegmentedButtonRow(
+    onGoalTypeChanged: (GoalType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    val options = GoalType.entries.map { it.toString(LocalContext.current) }
+
+    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
+        options.forEachIndexed { index, option ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = options.size
+                ),
+                onClick = {
+                    onGoalTypeChanged(GoalType.entries[index])
+                    selectedIndex = index
+                },
+                selected = index == selectedIndex,
+                label = { Text(option) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun GoalValueInputRow(
+    initialValue: Int,
+    onValueChanged: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var numericStringValue by remember { mutableStateOf(initialValue.toString()) }
+    var isError by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = numericStringValue,
+            onValueChange = {
+                val numericValue = it.toIntOrNull() ?: 0
+                isError = !validateGoalValue(numericValue)
+
+                if (it.isDigitsOnly()) {
+                    numericStringValue = it
+                }
+
+                if (!isError) {
+                    onValueChanged(it.toIntOrNull() ?: 0)
+                }
+            },
+            placeholder = { Text(stringResource(R.string.new_journey_goal_value_hint)) },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            isError = isError,
+            singleLine = true,
+            modifier = Modifier
+                .widthIn(min = 24.dp)
+                .weight(1f)
+        )
+
+        StandardHalfSpacer()
+
+        Text(
+            stringResource(R.string.new_journey_goal_value_label),
+            maxLines = 1,
+            modifier = Modifier.weight(2f)
+        )
+    }
+}
+
+private fun validateGoalValue(value: Int): Boolean {
+    return value > 0
 }
 
 @Composable
