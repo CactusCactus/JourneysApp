@@ -68,9 +68,14 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     // Timber
     implementation(libs.timber)
+
+    // Work Manager
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Tests
     testImplementation(libs.junit)

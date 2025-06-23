@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.example.journeysapp.data.model.GoalFrequency
 import com.example.journeysapp.data.model.Journey
 
 @Dao
@@ -31,4 +32,9 @@ interface JourneyDao {
 
     @Query("UPDATE journey SET goal_progress = 0 WHERE uid = :journeyId ")
     fun resetGoalProgress(journeyId: Int)
+
+    @Query("UPDATE journey SET goal_progress = 0 WHERE goal_frequency = :frequency")
+    suspend fun resetAllGoalProgressForFrequency(frequency: GoalFrequency): Int
+
+
 }

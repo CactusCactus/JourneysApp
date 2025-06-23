@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.journeysapp.BuildConfig
 import com.example.journeysapp.data.dao.JourneyDao
 import com.example.journeysapp.data.model.GoalFrequencyTypeConverter
 import com.example.journeysapp.data.model.GoalTypeConverter
@@ -23,7 +24,11 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun builder(context: Context) = Room.databaseBuilder(
             context, AppDatabase::class.java, APP_DATABASE_NAME
-        )
+        ).also {
+            if (BuildConfig.DEBUG) {
+                it.fallbackToDestructiveMigration(true)
+            }
+        }
     }
 
     abstract fun journeyDao(): JourneyDao
