@@ -17,33 +17,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.floor
 
 @Composable
-fun StepsProgressIndicator(checkedSteps: Int, maxSteps: Int, modifier: Modifier = Modifier) {
+fun StepsProgressIndicator(
+    checkedSteps: Int,
+    maxSteps: Int,
+    modifier: Modifier = Modifier,
+    stepSize: Dp = 16.dp,
+    overflowStepSize: Dp = 24.dp,
+    stepSpacing: Dp = 4.dp
+) {
     BoxWithConstraints(modifier = modifier) {
-        val stepSize = 17.dp
-        val stepSpacing = 4.dp
-
         val availableWidth = maxWidth
         val stepWidthWithSpacing = stepSize + stepSpacing
 
         val maxPossibleDisplayedSteps = if (stepWidthWithSpacing > 0.dp) {
-            floor((availableWidth + stepSpacing) / stepWidthWithSpacing).toInt()
-        } else {
-            0
-        }
+            floor((availableWidth - overflowStepSize + stepSpacing) / stepWidthWithSpacing).toInt()
+        } else 0
 
         val uncheckedSteps = maxSteps - checkedSteps
-        val isOverflowStart = checkedSteps - maxPossibleDisplayedSteps / 2 > 0
-        val isOverflowEnd = uncheckedSteps - maxPossibleDisplayedSteps / 2 > 0
+        val halfPoint = maxPossibleDisplayedSteps / 2
 
-        val halfPointStart = maxPossibleDisplayedSteps / 2
+        val isOverflowStart = checkedSteps - halfPoint > 0
+        val isOverflowEnd = uncheckedSteps - halfPoint > 0
 
         val overflowStartCount = if (isOverflowEnd) {
-            checkedSteps - halfPointStart
+            checkedSteps - halfPoint
         } else {
             maxSteps - maxPossibleDisplayedSteps + 1
         }.coerceAtLeast(0)
@@ -70,23 +73,35 @@ fun StepsProgressIndicator(checkedSteps: Int, maxSteps: Int, modifier: Modifier 
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (isOverflowStart) {
-                OverflowStep(overflowSteps = overflowStartCount)
+                OverflowStep(
+                    overflowSteps = overflowStartCount,
+                    checked = true,
+                    stepSize = overflowStepSize
+                )
             }
 
             repeat(standardStepsCount) {
-                Step(checked = currentlyCheckedSteps < displayedTarget)
+                Step(checked = currentlyCheckedSteps < displayedTarget, stepSize = stepSize)
                 currentlyCheckedSteps++
             }
 
             if (isOverflowEnd) {
-                OverflowStep(overflowSteps = overflowEndCount)
+                OverflowStep(
+                    overflowSteps = overflowEndCount,
+                    checked = false,
+                    stepSize = overflowStepSize
+                )
             }
         }
     }
 }
 
 @Composable
-private fun Step(modifier: Modifier = Modifier, checked: Boolean = false) {
+private fun Step(
+    modifier: Modifier = Modifier,
+    checked: Boolean = false,
+    stepSize: Dp = 16.dp
+) {
     val color = if (checked) {
         MaterialTheme.colorScheme.primary
     } else {
@@ -98,8 +113,9 @@ private fun Step(modifier: Modifier = Modifier, checked: Boolean = false) {
     ) {
         Canvas(
             modifier = Modifier
-                .size(16.dp)
-                .padding(4.dp), onDraw = {
+                .size(stepSize)
+                .padding(4.dp),
+            onDraw = {
                 if (checked) {
                     drawCircle(color = color)
                 }
@@ -111,25 +127,32 @@ private fun Step(modifier: Modifier = Modifier, checked: Boolean = false) {
 private fun OverflowStep(
     modifier: Modifier = Modifier,
     overflowSteps: Int,
-    checked: Boolean = false
+    checked: Boolean = false,
+    stepSize: Dp = 24.dp
 ) {
-    val color = if (checked) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.secondary
-    }
+    val color = MaterialTheme.colorScheme.primary
 
     Box(
         modifier = modifier
-            .size(24.dp)
-            .border(shape = CircleShape, width = 2.dp, color = color),
+            .size(stepSize)
+            .border(shape = CircleShape, width = 1.dp, color = color),
         contentAlignment = Alignment.Center
     ) {
+        if (checked) {
+            Canvas(
+                modifier = Modifier
+                    .size(stepSize)
+                    .padding(3.dp),
+                onDraw = {
+                    drawCircle(color = color)
+                })
+        }
+
         Text(
-            text = "+$overflowSteps",
-            color = color,
+            text = "$overflowSteps",
+            color = if (checked) MaterialTheme.colorScheme.onPrimary else color,
             fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }
