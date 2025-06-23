@@ -107,7 +107,20 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
                     event.journey,
                     event.journey.copy(goal = goal)
                 )
+
+                _uiState.value = _uiState.value.copy(
+                    contextMenuSheetOpen = false,
+                    confirmResetDialogShowing = false
+                )
             }
+
+            UIEvent.OnGoalResetClick -> _uiState.value = _uiState.value.copy(
+                confirmResetDialogShowing = true
+            )
+
+            UIEvent.OnResetJourneyDialogDismiss -> _uiState.value = _uiState.value.copy(
+                confirmResetDialogShowing = false
+            )
         }
     }
 
@@ -123,7 +136,9 @@ data class UiState(
 
     val contextMenuSheetOpen: Boolean = false,
 
-    val confirmDeleteDialogShowing: Boolean = false
+    val confirmDeleteDialogShowing: Boolean = false,
+
+    val confirmResetDialogShowing: Boolean = false
 )
 
 sealed class UIEvent {
@@ -139,9 +154,13 @@ sealed class UIEvent {
 
     data object OnJourneyDeleteClick : UIEvent()
 
+    data object OnGoalResetClick : UIEvent()
+
     data class OnJourneyContextMenuClick(val journey: Journey) : UIEvent()
 
     data object OnDeleteJourneyDialogDismiss : UIEvent()
+
+    data object OnResetJourneyDialogDismiss : UIEvent()
 
     data object OnContextMenuSheetDismiss : UIEvent()
 

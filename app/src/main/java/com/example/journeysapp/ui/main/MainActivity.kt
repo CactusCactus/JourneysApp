@@ -55,27 +55,36 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     )
 
-                    val uiState = mainViewModel.uiState.collectAsState().value
-
-                    if (uiState.addBottomSheetOpen) {
-                        ShowAddJourneyBottomSheet()
-                    }
-
-                    val journeyToEdit = mainViewModel.contextSelectedJourney
-
-                    if (uiState.editBottomSheetOpen && journeyToEdit != null) {
-                        ShowEditJourneyBottomSheet(journeyToEdit)
-                    }
-
-                    if (uiState.contextMenuSheetOpen) {
-                        ShowContextMenuBottomSheet()
-                    }
-
-                    if (uiState.confirmDeleteDialogShowing) {
-                        ShowDeleteConfirmDialog()
-                    }
+                    ShowDialogsAndBottomSheets()
                 }
             }
+        }
+    }
+
+    @Composable
+    private fun ShowDialogsAndBottomSheets() {
+        val uiState = mainViewModel.uiState.collectAsState().value
+
+        if (uiState.addBottomSheetOpen) {
+            ShowAddJourneyBottomSheet()
+        }
+
+        val journeyToEdit = mainViewModel.contextSelectedJourney
+
+        if (uiState.editBottomSheetOpen && journeyToEdit != null) {
+            ShowEditJourneyBottomSheet(journeyToEdit)
+        }
+
+        if (uiState.contextMenuSheetOpen) {
+            ShowContextMenuBottomSheet()
+        }
+
+        if (uiState.confirmDeleteDialogShowing) {
+            ShowDeleteConfirmDialog()
+        }
+
+        if (uiState.confirmResetDialogShowing) {
+            ShowResetProgressConfirmDialog()
         }
     }
 
@@ -118,7 +127,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         JourneyContextMenuOption.RESET ->
-                            mainViewModel.onEvent(UIEvent.OnGoalReset(journey))
+                            mainViewModel.onEvent(UIEvent.OnGoalResetClick)
                     }
                 })
         }
@@ -136,9 +145,26 @@ class MainActivity : ComponentActivity() {
                 mainViewModel.onEvent(UIEvent.OnDeleteJourneyDialogDismiss)
             },
             title = stringResource(R.string.delete_journey_dialog_title),
-            text = stringResource(R.string.delete_journey_dialog_text) + " ${journeyToDelete.name}",
+            text = stringResource(R.string.delete_journey_dialog_text) + " ${journeyToDelete.name}?",
             icon = R.drawable.ic_delete_24,
             iconTint = colorResource(R.color.color_error),
+        )
+    }
+
+    @Composable
+    private fun ShowResetProgressConfirmDialog() {
+        val journeyToReset = mainViewModel.contextSelectedJourney ?: return
+
+        ConfirmDialog(
+            onConfirmListener = {
+                mainViewModel.onEvent(UIEvent.OnGoalReset(journeyToReset))
+            },
+            onDismissListener = {
+                mainViewModel.onEvent(UIEvent.OnResetJourneyDialogDismiss)
+            },
+            title = stringResource(R.string.goal_reset_progress),
+            text = stringResource(R.string.reset_journey_goal_dialog_text) + " ${journeyToReset.name}?",
+            icon = R.drawable.ic_refresh_24
         )
     }
 }
