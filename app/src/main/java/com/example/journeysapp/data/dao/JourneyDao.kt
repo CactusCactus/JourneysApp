@@ -20,4 +20,15 @@ interface JourneyDao {
 
     @Update
     fun update(journey: Journey)
+
+    @Query(
+        "UPDATE journey " +
+                "SET goal_progress = goal_progress + :amount " +
+                "WHERE uid = :journeyId " +
+                "AND goal_progress < goal_value"
+    )
+    fun incrementGoalProgress(journeyId: Int, amount: Int = 1)
+
+    @Query("UPDATE journey SET goal_progress = 0 WHERE uid = :journeyId ")
+    fun resetGoalProgress(journeyId: Int)
 }

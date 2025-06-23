@@ -1,10 +1,12 @@
 package com.example.journeysapp.ui.main.composables
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,16 +27,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.ui.common.StepsProgressIndicator
-import com.example.journeysapp.ui.theme.StandardHalfSpacer
 import com.example.journeysapp.ui.theme.StandardSpacer
-import com.example.journeysapp.ui.theme.standardHalfPadding
 import com.example.journeysapp.ui.theme.standardPadding
+import com.example.journeysapp.ui.theme.standardQuarterPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,13 +73,17 @@ fun MainBottomBar(
 
 @Composable
 fun JourneysLazyColumn(
-    journeyList: List<Journey>, onMoreMenuClicked: (Journey) -> Unit, modifier: Modifier = Modifier
+    journeyList: List<Journey>,
+    onIncrementClicked: (Journey) -> Unit,
+    onLongPress: (Journey) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier) {
         items(items = journeyList) { journey ->
             JourneyRow(
                 item = journey,
-                onMoreMenuClicked = onMoreMenuClicked,
+                onIncrementClicked = onIncrementClicked,
+                onLongPress = onLongPress,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(all = standardPadding)
@@ -86,11 +94,24 @@ fun JourneysLazyColumn(
 }
 
 @Composable
-fun JourneyRow(item: Journey, onMoreMenuClicked: (Journey) -> Unit, modifier: Modifier = Modifier) {
+fun JourneyRow(
+    item: Journey,
+    onIncrementClicked: (Journey) -> Unit,
+    onLongPress: (Journey) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val haptics = LocalHapticFeedback.current
+
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        modifier = modifier.combinedClickable(
+            onClick = { },
+            onLongClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                onLongPress(item)
+            }
+        )
     ) {
         Box(
             modifier = Modifier
@@ -113,22 +134,28 @@ fun JourneyRow(item: Journey, onMoreMenuClicked: (Journey) -> Unit, modifier: Mo
         Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
             Text(item.name)
 
-            StandardHalfSpacer()
+            Text(
+                text = item.goal.goalType.toString(LocalContext.current),
+                style = MaterialTheme.typography.labelMedium
+            )
 
             StepsProgressIndicator(
-                checkedSteps = 50,
-                maxSteps = 100,
+                checkedSteps = item.goal.progress,
+                maxSteps = item.goal.value,
                 modifier = Modifier.fillMaxWidth()
             )
         }
 
         StandardSpacer()
 
-        IconButton(onClick = { onMoreMenuClicked(item) }, modifier = Modifier.size(48.dp)) {
+        IconButton(onClick = { onIncrementClicked(item) }, modifier = Modifier.size(48.dp)) {
             Icon(
-                painter = painterResource(R.drawable.ic_more_vert_24),
-                contentDescription = item.name + " more menu",
-                modifier = Modifier.padding(standardHalfPadding)
+                painter = painterResource(R.drawable.ic_add_circle_24),
+                contentDescription = item.name + " increment",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(standardQuarterPadding)
             )
         }
     }

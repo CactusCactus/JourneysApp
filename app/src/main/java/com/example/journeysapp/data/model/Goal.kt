@@ -7,8 +7,9 @@ import com.example.journeysapp.R
 
 data class Goal(
     @ColumnInfo(name = "goal_type") val goalType: GoalType,
-    @ColumnInfo(name = "value") val value: Int,
-    @ColumnInfo(name = "goal_frequency") val goalFrequency: GoalFrequency
+    @ColumnInfo(name = "goal_value") val value: Int,
+    @ColumnInfo(name = "goal_frequency") val goalFrequency: GoalFrequency,
+    @ColumnInfo(name = "goal_progress") val progress: Int = 0
 )
 
 enum class GoalFrequency {

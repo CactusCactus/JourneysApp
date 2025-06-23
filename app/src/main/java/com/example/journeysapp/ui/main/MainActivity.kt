@@ -45,9 +45,14 @@ class MainActivity : ComponentActivity() {
                     }, modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     JourneysLazyColumn(
-                        journeyList = mainViewModel.journeyList.toList(), onMoreMenuClicked = {
+                        journeyList = mainViewModel.journeyList.toList(),
+                        onLongPress = {
                             mainViewModel.onEvent(UIEvent.OnJourneyContextMenuClick(it))
-                        }, modifier = Modifier.padding(innerPadding)
+                        },
+                        onIncrementClicked = {
+                            mainViewModel.onEvent(UIEvent.OnGoalIncremented(it))
+                        },
+                        modifier = Modifier.padding(innerPadding)
                     )
 
                     val uiState = mainViewModel.uiState.collectAsState().value
@@ -111,6 +116,9 @@ class MainActivity : ComponentActivity() {
                             mainViewModel.onEvent(UIEvent.OnJourneyEditClick(journey))
                             mainViewModel.onEvent(UIEvent.OnContextMenuSheetDismiss)
                         }
+
+                        JourneyContextMenuOption.RESET ->
+                            mainViewModel.onEvent(UIEvent.OnGoalReset(journey))
                     }
                 })
         }

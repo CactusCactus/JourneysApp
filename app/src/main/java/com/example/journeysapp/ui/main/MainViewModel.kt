@@ -22,7 +22,7 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
 
     var contextSelectedJourney: Journey? = null
 
-    var editedJourney: Journey? = null
+    private var editedJourney: Journey? = null
 
     init {
         viewModelScope.launch {
@@ -71,7 +71,7 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
                 )
             }
 
-            // Edit Journey edit
+            // Edit Journey
             is UIEvent.OnJourneyEditClick -> {
                 editedJourney = event.editedJourney
                 _uiState.value = _uiState.value.copy(editBottomSheetOpen = true)
@@ -84,12 +84,35 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
             is UIEvent.OnJourneyEdited -> viewModelScope.launch {
                 repository.updateJourney(event.journey)
 
-                if (editedJourney != null) {
-                    journeyList[journeyList.indexOf(editedJourney)] = event.journey
+                editedJourney?.let {
+                    updateJourneyLocally(it, event.journey)
                     editedJourney = null
                 }
             }
+
+            // Handle goals
+            is UIEvent.OnGoalIncremented -> viewModelScope.launch {
+                repository.incrementGoalProgress(event.journey.uid)
+                val goal = event.journey.goal.copy(progress = event.journey.goal.progress + 1)
+                updateJourneyLocally(
+                    event.journey,
+                    event.journey.copy(goal = goal)
+                )
+            }
+
+            is UIEvent.OnGoalReset -> viewModelScope.launch {
+                repository.resetGoalProgress(event.journey.uid)
+                val goal = event.journey.goal.copy(progress = 0)
+                updateJourneyLocally(
+                    event.journey,
+                    event.journey.copy(goal = goal)
+                )
+            }
         }
+    }
+
+    private fun updateJourneyLocally(oldJourney: Journey, newJourney: Journey) {
+        journeyList[journeyList.indexOf(oldJourney)] = newJourney
     }
 }
 
@@ -125,4 +148,8 @@ sealed class UIEvent {
     data class OnJourneyCreated(val journey: Journey) : UIEvent()
 
     data class OnJourneyDeleted(val journey: Journey) : UIEvent()
+
+    data class OnGoalIncremented(val journey: Journey) : UIEvent()
+
+    data class OnGoalReset(val journey: Journey) : UIEvent()
 }

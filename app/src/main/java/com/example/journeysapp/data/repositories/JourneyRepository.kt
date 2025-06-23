@@ -36,4 +36,17 @@ class JourneyRepository @Inject constructor(@ApplicationContext applicationConte
             Timber.d("Edited Journey: id=$it, name=${journey.name}")
         }
     }
+
+    suspend fun incrementGoalProgress(journeyId: Int, amount: Int = 1) =
+        withContext(Dispatchers.IO) {
+            database.journeyDao().incrementGoalProgress(journeyId, amount).also {
+                Timber.d("Incremented goal progress for journey with id=$journeyId")
+            }
+        }
+
+    suspend fun resetGoalProgress(journeyId: Int) = withContext(Dispatchers.IO) {
+        database.journeyDao().resetGoalProgress(journeyId).also {
+            Timber.d("Reset goal progress for journey with id=$journeyId")
+        }
+    }
 }
