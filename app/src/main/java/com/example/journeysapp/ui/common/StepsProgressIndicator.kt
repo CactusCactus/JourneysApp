@@ -1,5 +1,11 @@
 package com.example.journeysapp.ui.common
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -72,8 +78,8 @@ fun StepsProgressIndicator(
             horizontalArrangement = Arrangement.spacedBy(stepSpacing),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (isOverflowStart) {
-                OverflowStep(
+            AnimatedVisibilityForSteps(isOverflowStart, fromLeft = true) {
+                OverflowStepDot(
                     overflowSteps = overflowStartCount,
                     checked = true,
                     stepSize = overflowStepSize
@@ -81,12 +87,12 @@ fun StepsProgressIndicator(
             }
 
             repeat(standardStepsCount) {
-                Step(checked = currentlyCheckedSteps < displayedTarget, stepSize = stepSize)
+                StepDot(checked = currentlyCheckedSteps < displayedTarget, stepSize = stepSize)
                 currentlyCheckedSteps++
             }
 
-            if (isOverflowEnd) {
-                OverflowStep(
+            AnimatedVisibilityForSteps(isOverflowEnd, fromLeft = false) {
+                OverflowStepDot(
                     overflowSteps = overflowEndCount,
                     checked = false,
                     stepSize = overflowStepSize
@@ -97,7 +103,7 @@ fun StepsProgressIndicator(
 }
 
 @Composable
-private fun Step(
+private fun StepDot(
     modifier: Modifier = Modifier,
     checked: Boolean = false,
     stepSize: Dp = 16.dp
@@ -109,22 +115,25 @@ private fun Step(
     }
 
     Box(
-        modifier = modifier.border(shape = CircleShape, width = 1.dp, color = color)
+        modifier = modifier
+            .size(stepSize)
+            .border(shape = CircleShape, width = 1.dp, color = color)
     ) {
-        Canvas(
-            modifier = Modifier
-                .size(stepSize)
-                .padding(4.dp),
-            onDraw = {
-                if (checked) {
+        AnimatedVisibility(checked, enter = scaleIn(), exit = scaleOut()) {
+            Canvas(
+                modifier = Modifier
+                    .size(stepSize)
+                    .padding(4.dp),
+                onDraw = {
                     drawCircle(color = color)
                 }
-            })
+            )
+        }
     }
 }
 
 @Composable
-private fun OverflowStep(
+private fun OverflowStepDot(
     modifier: Modifier = Modifier,
     overflowSteps: Int,
     checked: Boolean = false,
@@ -157,8 +166,28 @@ private fun OverflowStep(
     }
 }
 
+@Composable
+private fun AnimatedVisibilityForSteps(
+    visible: Boolean,
+    fromLeft: Boolean,
+    content: @Composable AnimatedVisibilityScope.() -> Unit
+) {
+    val offset: (fullWidth: Int) -> Int = if (fromLeft) {
+        { -it / 2 }
+    } else {
+        { it * 2 }
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInHorizontally(initialOffsetX = offset) + scaleIn(),
+        exit = slideOutHorizontally(targetOffsetX = offset) + scaleOut(),
+        content = content
+    )
+}
+
 @Preview
 @Composable
 private fun StepsProgressIndicatorPreview() {
-    OverflowStep(overflowSteps = 5)
+    OverflowStepDot(overflowSteps = 5)
 }
