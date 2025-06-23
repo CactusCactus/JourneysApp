@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.floor
+import kotlin.math.min
 
 @Composable
 fun StepsProgressIndicator(
@@ -63,7 +64,7 @@ fun StepsProgressIndicator(
             maxSteps - maxPossibleDisplayedSteps + 1
         }.coerceAtLeast(0)
 
-        var standardStepsCount = maxPossibleDisplayedSteps
+        var standardStepsCount = min(maxPossibleDisplayedSteps, maxSteps)
 
         if (isOverflowStart)
             standardStepsCount--
