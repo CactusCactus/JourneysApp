@@ -146,8 +146,13 @@ fun JourneyRow(
                     style = MaterialTheme.typography.labelMedium
                 )
             } else {
+                val goalString = item.goal.goalType.toString(LocalContext.current) + " " +
+                        item.goal.value + " " +
+                        item.goal.unit.lowercase() + " " +
+                        item.goal.goalFrequency.toString(LocalContext.current).lowercase()
+
                 Text(
-                    text = item.goal.goalType.toString(LocalContext.current),
+                    text = goalString,
                     style = MaterialTheme.typography.labelMedium
                 )
 

@@ -28,6 +28,8 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -39,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -112,6 +115,7 @@ private fun ModifyJourneyBottomSheet(
     journeyGoal: Goal = Goal(
         goalType = GoalType.LESS_THAN,
         value = 10,
+        unit = stringResource(R.string.new_journey_goal_value_label),
         goalFrequency = GoalFrequency.DAILY
     ),
     namePlaceholder: String = stringResource(R.string.add_new_journey_hint),
@@ -173,6 +177,9 @@ private fun ModifyJourneyBottomSheet(
                 },
                 onFrequencyChanged = {
                     currentJourneyGoal = currentJourneyGoal.copy(goalFrequency = it)
+                },
+                onUnitChanged = {
+                    currentJourneyGoal = currentJourneyGoal.copy(unit = it)
                 }
             )
 
@@ -201,6 +208,7 @@ private fun GoalFrequencyInputRow(
     currentGoal: Goal,
     onGoalTypeChanged: (GoalType) -> Unit,
     onValueChanged: (Int) -> Unit,
+    onUnitChanged: (String) -> Unit,
     onFrequencyChanged: (GoalFrequency) -> Unit
 ) {
     // Goal type
@@ -218,7 +226,11 @@ private fun GoalFrequencyInputRow(
     StandardSpacer()
 
     // Goal value
-    GoalValueInputRow(initialValue = currentGoal.value, onValueChanged = onValueChanged)
+    GoalValueInputRow(
+        initialValue = currentGoal.value,
+        onValueChanged = onValueChanged,
+        onUnitChanged = onUnitChanged
+    )
 
     StandardSpacer()
 
@@ -293,6 +305,7 @@ private fun GoalTypeSegmentedButtonRow(
 private fun GoalValueInputRow(
     initialValue: Int,
     onValueChanged: (Int) -> Unit,
+    onUnitChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var numericStringValue by remember { mutableStateOf(initialValue.toString()) }
@@ -330,10 +343,31 @@ private fun GoalValueInputRow(
 
         StandardHalfSpacer()
 
-        Text(
-            stringResource(R.string.new_journey_goal_value_label),
-            maxLines = 1,
-            modifier = Modifier.weight(2f)
+        val defaultUnit = stringResource(R.string.new_journey_goal_value_label)
+        var goalUnit by remember { mutableStateOf(defaultUnit) }
+
+        TextField(
+            value = goalUnit,
+            onValueChange = {
+                goalUnit = it
+
+                if (it.isNotBlank()) {
+                    onUnitChanged(it)
+                } else {
+                    onUnitChanged(defaultUnit)
+                }
+            },
+            placeholder = { Text(text = defaultUnit) },
+            colors = TextFieldDefaults.colors().copy(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                errorContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent
+            ),
+            singleLine = true,
+            modifier = Modifier
+                .widthIn(min = 24.dp)
+                .weight(2f)
         )
     }
 }
