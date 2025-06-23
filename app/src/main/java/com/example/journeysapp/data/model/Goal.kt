@@ -10,7 +10,9 @@ data class Goal(
     @ColumnInfo(name = "goal_value") val value: Int,
     @ColumnInfo(name = "goal_frequency") val goalFrequency: GoalFrequency,
     @ColumnInfo(name = "goal_progress") val progress: Int = 0
-)
+) {
+    fun isCompleted() = progress == value
+}
 
 enum class GoalFrequency {
     DAILY,
@@ -31,6 +33,11 @@ enum class GoalType {
     fun toString(context: Context) = when (this) {
         LESS_THAN -> context.getString(R.string.goal_type_less_than)
         MORE_THAN -> context.getString(R.string.goal_type_more_than)
+    }
+
+    fun toCompletionString(context: Context) = when (this) {
+        LESS_THAN -> context.getString(R.string.goal_completion_less_than)
+        MORE_THAN -> context.getString(R.string.goal_completion_more_than)
     }
 }
 

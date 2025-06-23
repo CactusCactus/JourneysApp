@@ -1,5 +1,8 @@
 package com.example.journeysapp.ui.main.composables
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -105,13 +108,15 @@ fun JourneyRow(
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.combinedClickable(
-            onClick = { },
-            onLongClick = {
-                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                onLongPress(item)
-            }
-        )
+        modifier = Modifier
+            .combinedClickable(
+                onClick = { },
+                onLongClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onLongPress(item)
+                }
+            )
+            .then(modifier)
     ) {
         Box(
             modifier = Modifier
@@ -134,29 +139,47 @@ fun JourneyRow(
         Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
             Text(item.name)
 
-            Text(
-                text = item.goal.goalType.toString(LocalContext.current),
-                style = MaterialTheme.typography.labelMedium
-            )
+            if (item.goal.isCompleted()) {
+                Text(
+                    item.goal.goalType.toCompletionString(LocalContext.current),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            } else {
+                Text(
+                    text = item.goal.goalType.toString(LocalContext.current),
+                    style = MaterialTheme.typography.labelMedium
+                )
 
-            StepsProgressIndicator(
-                checkedSteps = item.goal.progress,
-                maxSteps = item.goal.value,
-                modifier = Modifier.fillMaxWidth()
-            )
+                StepsProgressIndicator(
+                    checkedSteps = item.goal.progress,
+                    maxSteps = item.goal.value,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
         StandardSpacer()
 
-        IconButton(onClick = { onIncrementClicked(item) }, modifier = Modifier.size(48.dp)) {
-            Icon(
-                painter = painterResource(R.drawable.ic_add_circle_24),
-                contentDescription = item.name + " increment",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(standardQuarterPadding)
-            )
+        AnimatedVisibility(
+            visible = !item.goal.isCompleted(),
+            enter = scaleIn(),
+            exit = scaleOut()
+        ) {
+            IconButton(
+                enabled = !item.goal.isCompleted(),
+                onClick = { onIncrementClicked(item) },
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_add_circle_24),
+                    contentDescription = item.name + " increment",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(standardQuarterPadding)
+                )
+            }
         }
     }
 }

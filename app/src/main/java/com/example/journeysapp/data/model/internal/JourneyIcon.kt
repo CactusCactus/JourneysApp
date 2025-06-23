@@ -9,7 +9,8 @@ enum class JourneyIcon(@DrawableRes val iconId: Int) {
     NO_SMOKING(R.drawable.ic_smoke_free_24),
     OUTDOORS(R.drawable.ic_camping_24),
     RUNNING(R.drawable.ic_run_24),
-    WAKE_UP(R.drawable.ic_alarm_24)
+    WAKE_UP(R.drawable.ic_alarm_24),
+    BOOK(R.drawable.ic_book_24)
 }
 
 class JourneyIconTypeConverter {
