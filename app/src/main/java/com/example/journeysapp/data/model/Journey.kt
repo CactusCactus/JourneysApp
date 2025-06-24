@@ -8,7 +8,7 @@ import com.example.journeysapp.data.model.internal.JourneyIcon
 
 @Entity
 data class Journey(
-    @PrimaryKey(autoGenerate = true) val uid: Int = 0,
+    @PrimaryKey(autoGenerate = true) val uid: Long = 0,
     @ColumnInfo(name = "name") val name: String,
     @ColumnInfo(name = "icon") val icon: JourneyIcon,
     @Embedded val goal: Goal

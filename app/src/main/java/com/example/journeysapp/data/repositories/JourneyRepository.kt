@@ -14,6 +14,10 @@ class JourneyRepository @Inject constructor(private val dao: JourneyDao) {
         }
     }
 
+    suspend fun getJourney(journeyId: Long) = withContext(Dispatchers.IO) {
+        return@withContext dao.get(journeyId)
+    }
+
 
     suspend fun getAllJourneys(): List<Journey> = withContext(Dispatchers.IO) {
         return@withContext dao.getAll().also {
@@ -33,14 +37,14 @@ class JourneyRepository @Inject constructor(private val dao: JourneyDao) {
         }
     }
 
-    suspend fun incrementGoalProgress(journeyId: Int, amount: Int = 1) =
+    suspend fun incrementGoalProgress(journeyId: Long, amount: Int = 1) =
         withContext(Dispatchers.IO) {
             dao.incrementGoalProgress(journeyId, amount).also {
                 Timber.d("Incremented goal progress for journey with id=$journeyId")
             }
         }
 
-    suspend fun resetGoalProgress(journeyId: Int) = withContext(Dispatchers.IO) {
+    suspend fun resetGoalProgress(journeyId: Long) = withContext(Dispatchers.IO) {
         dao.resetGoalProgress(journeyId).also {
             Timber.d("Reset goal progress for journey with id=$journeyId")
         }

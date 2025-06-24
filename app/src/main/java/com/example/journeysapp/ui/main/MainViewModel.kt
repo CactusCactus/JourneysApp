@@ -6,8 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.repositories.JourneyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -16,7 +19,11 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(private val repository: JourneyRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
 
+    private val _navEvent = MutableSharedFlow<NavEvent>()
+
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+    val navEvent: SharedFlow<NavEvent> = _navEvent.asSharedFlow()
 
     val journeyList = mutableStateListOf<Journey>()
 
@@ -121,6 +128,11 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
             UIEvent.OnResetJourneyDialogDismiss -> _uiState.value = _uiState.value.copy(
                 confirmResetDialogShowing = false
             )
+
+            // Details
+            is UIEvent.OnJourneyDetailsClick -> viewModelScope.launch {
+                _navEvent.emit(NavEvent.ToJourneyDetails(event.journey.uid))
+            }
         }
     }
 
@@ -171,4 +183,10 @@ sealed class UIEvent {
     data class OnGoalIncremented(val journey: Journey) : UIEvent()
 
     data class OnGoalReset(val journey: Journey) : UIEvent()
+
+    data class OnJourneyDetailsClick(val journey: Journey) : UIEvent()
+}
+
+sealed class NavEvent {
+    data class ToJourneyDetails(val journeyId: Long) : NavEvent()
 }

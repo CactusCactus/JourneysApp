@@ -13,6 +13,9 @@ interface JourneyDao {
     @Delete
     fun delete(journey: Journey)
 
+    @Query("SELECT * FROM journey WHERE uid = :journeyId")
+    fun get(journeyId: Long): Journey
+
     @Query("SELECT * FROM journey")
     fun getAll(): List<Journey>
 
@@ -28,10 +31,10 @@ interface JourneyDao {
                 "WHERE uid = :journeyId " +
                 "AND goal_progress < goal_value"
     )
-    fun incrementGoalProgress(journeyId: Int, amount: Int = 1)
+    fun incrementGoalProgress(journeyId: Long, amount: Int = 1)
 
     @Query("UPDATE journey SET goal_progress = 0 WHERE uid = :journeyId ")
-    fun resetGoalProgress(journeyId: Int)
+    fun resetGoalProgress(journeyId: Long)
 
     @Query("UPDATE journey SET goal_progress = 0 WHERE goal_frequency = :frequency")
     suspend fun resetAllGoalProgressForFrequency(frequency: GoalFrequency): Int

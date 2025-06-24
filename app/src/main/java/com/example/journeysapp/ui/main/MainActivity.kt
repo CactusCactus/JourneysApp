@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -17,6 +18,7 @@ import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyContextMenuOption
 import com.example.journeysapp.ui.common.ConfirmDialog
+import com.example.journeysapp.ui.details.DetailsActivity
 import com.example.journeysapp.ui.main.composables.JourneysLazyColumn
 import com.example.journeysapp.ui.main.composables.MainBottomBar
 import com.example.journeysapp.ui.main.composables.MainTopBar
@@ -49,6 +51,9 @@ class MainActivity : ComponentActivity() {
                         onLongPress = {
                             mainViewModel.onEvent(UIEvent.OnJourneyContextMenuClick(it))
                         },
+                        onClick = {
+                            mainViewModel.onEvent(UIEvent.OnJourneyDetailsClick(it))
+                        },
                         onIncrementClicked = {
                             mainViewModel.onEvent(UIEvent.OnGoalIncremented(it))
                         },
@@ -56,6 +61,23 @@ class MainActivity : ComponentActivity() {
                     )
 
                     ShowDialogsAndBottomSheets()
+                    ObserveNavigationEvents()
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ObserveNavigationEvents() {
+        LaunchedEffect(key1 = true) {
+            mainViewModel.navEvent.collect { event ->
+                when (event) {
+                    is NavEvent.ToJourneyDetails -> startActivity(
+                        DetailsActivity.newIntent(
+                            this@MainActivity,
+                            event.journeyId
+                        )
+                    )
                 }
             }
         }

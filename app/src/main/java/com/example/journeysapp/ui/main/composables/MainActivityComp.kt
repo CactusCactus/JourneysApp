@@ -78,6 +78,7 @@ fun MainBottomBar(
 fun JourneysLazyColumn(
     journeyList: List<Journey>,
     onIncrementClicked: (Journey) -> Unit,
+    onClick: (Journey) -> Unit,
     onLongPress: (Journey) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -86,6 +87,7 @@ fun JourneysLazyColumn(
             JourneyRow(
                 item = journey,
                 onIncrementClicked = onIncrementClicked,
+                onClick = onClick,
                 onLongPress = onLongPress,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -100,6 +102,7 @@ fun JourneysLazyColumn(
 fun JourneyRow(
     item: Journey,
     onIncrementClicked: (Journey) -> Unit,
+    onClick: (Journey) -> Unit,
     onLongPress: (Journey) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -110,7 +113,7 @@ fun JourneyRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .combinedClickable(
-                onClick = { },
+                onClick = { onClick(item) },
                 onLongClick = {
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     onLongPress(item)
