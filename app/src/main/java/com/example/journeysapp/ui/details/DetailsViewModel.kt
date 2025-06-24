@@ -107,6 +107,28 @@ class DetailsViewModel @Inject constructor(
                     editSheetShowing = false
                 )
             }
+
+            UIEvent.OnGoalDecremented -> viewModelScope.launch {
+                val journey = uiState.value.journey ?: return@launch
+
+                val changedRows = repository.incrementGoalProgress(journey.uid, -1)
+
+                if (changedRows > 0) {
+                    val goal = journey.goal.copy(progress = journey.goal.progress - 1)
+                    _uiState.value = _uiState.value.copy(journey = journey.copy(goal = goal))
+                }
+            }
+
+            UIEvent.OnGoalIncremented -> viewModelScope.launch {
+                val journey = uiState.value.journey ?: return@launch
+
+                val changedRows = repository.incrementGoalProgress(journey.uid)
+
+                if (changedRows > 0) {
+                    val goal = journey.goal.copy(progress = journey.goal.progress + 1)
+                    _uiState.value = _uiState.value.copy(journey = journey.copy(goal = goal))
+                }
+            }
         }
     }
 
@@ -132,6 +154,10 @@ class DetailsViewModel @Inject constructor(
         data class OnJourneyEdited(val journey: Journey) : UIEvent
 
         object OnGoalReset : UIEvent
+
+        object OnGoalIncremented : UIEvent
+
+        object OnGoalDecremented : UIEvent
     }
 
     data class UIState(

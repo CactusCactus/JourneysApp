@@ -37,7 +37,7 @@ class JourneyRepository @Inject constructor(private val dao: JourneyDao) {
         }
     }
 
-    suspend fun incrementGoalProgress(journeyId: Long, amount: Int = 1) =
+    suspend fun incrementGoalProgress(journeyId: Long, amount: Int = 1) : Int =
         withContext(Dispatchers.IO) {
             dao.incrementGoalProgress(journeyId, amount).also {
                 Timber.d("Incremented goal progress for journey with id=$journeyId")

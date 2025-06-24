@@ -16,11 +16,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -252,6 +254,22 @@ class DetailsActivity : ComponentActivity() {
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
+
+                StandardSpacer()
+
+                Button(onClick = {
+                    viewModel.onEvent(UIEvent.OnGoalIncremented)
+                    setResult(RESULT_OK)
+                }) {
+                    Icon(painterResource(R.drawable.ic_add_24), "Increment goal")
+                }
+
+                OutlinedButton(onClick = {
+                    viewModel.onEvent(UIEvent.OnGoalDecremented)
+                    setResult(RESULT_OK)
+                }) {
+                    Icon(painterResource(R.drawable.ic_remove_24), "Decrement goal")
+                }
             }
 
             StandardSpacer()
