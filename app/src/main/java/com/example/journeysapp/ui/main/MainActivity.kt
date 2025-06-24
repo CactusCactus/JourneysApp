@@ -31,12 +31,12 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val mainViewModel: MainViewModel by viewModels()
+    private val viewModel: MainViewModel by viewModels()
 
     private val detailsResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
-                mainViewModel.onEvent(UIEvent.Refresh)
+                viewModel.onEvent(UIEvent.Refresh)
             }
         }
 
@@ -50,20 +50,20 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     topBar = { MainTopBar() }, bottomBar = {
                         MainBottomBar(onAddClick = {
-                            mainViewModel.onEvent(UIEvent.OnJourneyAddClick)
+                            viewModel.onEvent(UIEvent.OnJourneyAddClick)
                         })
                     }, modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     JourneysLazyColumn(
-                        journeyList = mainViewModel.journeyList.toList(),
+                        journeyList = viewModel.journeyList.toList(),
                         onLongPress = {
-                            mainViewModel.onEvent(UIEvent.OnJourneyContextMenuClick(it))
+                            viewModel.onEvent(UIEvent.OnJourneyContextMenuClick(it))
                         },
                         onClick = {
-                            mainViewModel.onEvent(UIEvent.OnJourneyDetailsClick(it))
+                            viewModel.onEvent(UIEvent.OnJourneyDetailsClick(it))
                         },
                         onIncrementClicked = {
-                            mainViewModel.onEvent(UIEvent.OnGoalIncremented(it))
+                            viewModel.onEvent(UIEvent.OnGoalIncremented(it))
                         },
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun ObserveNavigationEvents() {
         LaunchedEffect(key1 = true) {
-            mainViewModel.navEvent.collect { event ->
+            viewModel.navEvent.collect { event ->
                 when (event) {
                     is NavEvent.ToJourneyDetails -> {
                         detailsResult.launch(
@@ -92,13 +92,13 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun ShowDialogsAndBottomSheets() {
-        val uiState = mainViewModel.uiState.collectAsState().value
+        val uiState = viewModel.uiState.collectAsState().value
 
         if (uiState.addBottomSheetOpen) {
             ShowAddJourneyBottomSheet()
         }
 
-        val journeyToEdit = mainViewModel.contextSelectedJourney
+        val journeyToEdit = viewModel.contextSelectedJourney
 
         if (uiState.editBottomSheetOpen && journeyToEdit != null) {
             ShowEditJourneyBottomSheet(journeyToEdit)
@@ -120,10 +120,10 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun ShowAddJourneyBottomSheet() {
         AddJourneyBottomSheet(
-            onDismissRequest = { mainViewModel.onEvent(UIEvent.OnAddSheetDismiss) },
+            onDismissRequest = { viewModel.onEvent(UIEvent.OnAddSheetDismiss) },
             onJourneyCreatedRequest = {
-                mainViewModel.onEvent(UIEvent.OnJourneyCreated(it))
-                mainViewModel.onEvent(UIEvent.OnAddSheetDismiss)
+                viewModel.onEvent(UIEvent.OnJourneyCreated(it))
+                viewModel.onEvent(UIEvent.OnAddSheetDismiss)
             })
     }
 
@@ -131,32 +131,32 @@ class MainActivity : ComponentActivity() {
     private fun ShowEditJourneyBottomSheet(journeyToEdit: Journey) {
         EditJourneyBottomSheet(
             journey = journeyToEdit,
-            onDismissRequest = { mainViewModel.onEvent(UIEvent.OnEditSheetDismiss) },
+            onDismissRequest = { viewModel.onEvent(UIEvent.OnEditSheetDismiss) },
             onJourneyEditedRequest = {
-                mainViewModel.onEvent(UIEvent.OnJourneyEdited(it))
-                mainViewModel.onEvent(UIEvent.OnEditSheetDismiss)
+                viewModel.onEvent(UIEvent.OnJourneyEdited(it))
+                viewModel.onEvent(UIEvent.OnEditSheetDismiss)
             }
         )
     }
 
     @Composable
     private fun ShowContextMenuBottomSheet() {
-        mainViewModel.contextSelectedJourney?.let {
+        viewModel.contextSelectedJourney?.let {
             JourneyContextMenuBottomSheet(
                 journey = it,
-                onDismissRequest = { mainViewModel.onEvent(UIEvent.OnContextMenuSheetDismiss) },
+                onDismissRequest = { viewModel.onEvent(UIEvent.OnContextMenuSheetDismiss) },
                 onMenuOptionClick = { journey: Journey, option: JourneyContextMenuOption ->
                     when (option) {
                         JourneyContextMenuOption.DELETE ->
-                            mainViewModel.onEvent(UIEvent.OnJourneyDeleteClick)
+                            viewModel.onEvent(UIEvent.OnJourneyDeleteClick)
 
                         JourneyContextMenuOption.EDIT -> {
-                            mainViewModel.onEvent(UIEvent.OnJourneyEditClick(journey))
-                            mainViewModel.onEvent(UIEvent.OnContextMenuSheetDismiss)
+                            viewModel.onEvent(UIEvent.OnJourneyEditClick(journey))
+                            viewModel.onEvent(UIEvent.OnContextMenuSheetDismiss)
                         }
 
                         JourneyContextMenuOption.RESET ->
-                            mainViewModel.onEvent(UIEvent.OnGoalResetClick)
+                            viewModel.onEvent(UIEvent.OnGoalResetClick)
                     }
                 })
         }
@@ -164,14 +164,14 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun ShowDeleteConfirmDialog() {
-        val journeyToDelete = mainViewModel.contextSelectedJourney ?: return
+        val journeyToDelete = viewModel.contextSelectedJourney ?: return
 
         ConfirmDialog(
             onConfirmListener = {
-                mainViewModel.onEvent(UIEvent.OnJourneyDeleted(journeyToDelete))
+                viewModel.onEvent(UIEvent.OnJourneyDeleted(journeyToDelete))
             },
             onDismissListener = {
-                mainViewModel.onEvent(UIEvent.OnDeleteJourneyDialogDismiss)
+                viewModel.onEvent(UIEvent.OnDeleteJourneyDialogDismiss)
             },
             title = stringResource(R.string.delete_journey_dialog_title),
             text = stringResource(R.string.delete_journey_dialog_text) + " ${journeyToDelete.name}?",
@@ -182,14 +182,14 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun ShowResetProgressConfirmDialog() {
-        val journeyToReset = mainViewModel.contextSelectedJourney ?: return
+        val journeyToReset = viewModel.contextSelectedJourney ?: return
 
         ConfirmDialog(
             onConfirmListener = {
-                mainViewModel.onEvent(UIEvent.OnGoalReset(journeyToReset))
+                viewModel.onEvent(UIEvent.OnGoalReset(journeyToReset))
             },
             onDismissListener = {
-                mainViewModel.onEvent(UIEvent.OnResetJourneyDialogDismiss)
+                viewModel.onEvent(UIEvent.OnResetJourneyDialogDismiss)
             },
             title = stringResource(R.string.goal_reset_progress),
             text = stringResource(R.string.reset_journey_goal_dialog_text) + " ${journeyToReset.name}?",
