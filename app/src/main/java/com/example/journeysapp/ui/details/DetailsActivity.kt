@@ -11,29 +11,40 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
+import com.example.journeysapp.data.model.internal.JourneyContextMenuOption
+import com.example.journeysapp.ui.bottomSheets.JourneyContextMenuBottomSheet
+import com.example.journeysapp.ui.common.StepsProgressIndicator
+import com.example.journeysapp.ui.details.DetailsViewModel.UIEvent
 import com.example.journeysapp.ui.details.DetailsViewModel.UIState
 import com.example.journeysapp.ui.theme.AppTheme
+import com.example.journeysapp.ui.theme.StandardHalfSpacer
+import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardPadding
+import com.example.journeysapp.util.goalSummaryString
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -50,7 +61,6 @@ class DetailsActivity : ComponentActivity() {
     }
 
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -58,49 +68,63 @@ class DetailsActivity : ComponentActivity() {
 
         setContent {
             AppTheme {
-                Scaffold(topBar = {
-                    TopAppBar(
-                        title = {
-                            val uiState = viewModel.uiState.collectAsState().value
-
-                            Text(
-                                text = when (uiState) {
-                                    is UIState.JourneyFetched -> uiState.journey.name
-                                    else -> stringResource(R.string.app_name)
-                                },
-                                style = MaterialTheme.typography.displayMedium
-                            )
-                        })
-                }) { paddingValues ->
+                Scaffold(topBar = { DetailsTopBar() }) { paddingValues ->
                     val uiState = viewModel.uiState.collectAsState().value
+
                     DetailsScreen(uiState, paddingValues)
+
+                    val journey = uiState.journey
+
+                    if (uiState.contextMenuSheetOpen && journey != null) {
+                        ShowContextMenuBottomSheet(journey)
+                    }
+
+                    ObserveNavigationEvents()
                 }
             }
         }
     }
 
     @Composable
-    private fun DetailsScreen(uiState: UIState, paddingValues: PaddingValues) {
-        when (uiState) {
-            UIState.Loading ->
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                )
+    private fun ObserveNavigationEvents() {
+        LaunchedEffect(key1 = true) {
+            viewModel.navEvent.collect { event ->
+                when (event) {
+                    is DetailsViewModel.NavEvent.Finish -> {
+                        setResult(event.resultCode)
+                        finish()
+                    }
+                }
+            }
+        }
+    }
 
-            UIState.Error ->
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun DetailsTopBar() {
+        TopAppBar(
+            title = {
+                val uiState = viewModel.uiState.collectAsState().value
+
                 Text(
-                    stringResource(R.string.error_fetching_journey),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
+                    text = uiState.journey?.name
+                        ?: stringResource(R.string.details_title_default),
+                    style = MaterialTheme.typography.displayMedium
                 )
+            },
+            actions = {
+                IconButton(onClick = {
+                    viewModel.onEvent(UIEvent.OnContextMenuSheetOpen)
+                }) {
+                    Icon(painterResource(R.drawable.ic_more_vert_24), "Open context menu")
+                }
+            })
+    }
 
-            is UIState.JourneyFetched -> JourneyHeader(
-                uiState.journey,
-                paddingValues
-            )
+    @Composable
+    private fun DetailsScreen(uiState: UIState, paddingValues: PaddingValues) {
+        uiState.journey?.let {
+            JourneyHeader(it, paddingValues)
         }
     }
 
@@ -110,30 +134,88 @@ class DetailsActivity : ComponentActivity() {
         paddingValues: PaddingValues,
         modifier: Modifier = Modifier
     ) {
-        Column(
+        Row(
             modifier = modifier
                 .padding(paddingValues)
                 .fillMaxSize()
                 .padding(standardPadding)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(96.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = CardDefaults.shape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(journey.icon.iconId),
-                    contentDescription = journey.name + " icon",
-                    tint = MaterialTheme.colorScheme.primary,
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
                     modifier = Modifier
-                        .padding(standardPadding)
-                        .fillMaxSize()
+                        .size(96.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = CardDefaults.shape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(journey.icon.iconId),
+                        contentDescription = journey.name + " icon",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .padding(standardPadding)
+                            .fillMaxSize()
+                    )
+                }
+
+                StandardHalfSpacer()
+
+                Text(
+                    text = stringResource(R.string.currently_goal_progress),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Text(
+                    text = "${journey.goal.progress} / ${journey.goal.value}",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
+
+            StandardSpacer()
+
+            Column {
+                Text(
+                    text = stringResource(R.string.goal_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Text(
+                    journey.goal.goalSummaryString(LocalContext.current),
+                    style = MaterialTheme.typography.labelMedium
+                )
+
+                StandardHalfSpacer()
+
+                StepsProgressIndicator(
+                    checkedSteps = journey.goal.progress,
+                    maxSteps = journey.goal.value
+                )
+            }
+
         }
+    }
+
+    @Composable
+    private fun ShowContextMenuBottomSheet(journey: Journey) {
+        JourneyContextMenuBottomSheet(
+            journey = journey,
+            onDismissRequest = { viewModel.onEvent(UIEvent.OnContextMenuSheetDismiss) },
+            onMenuOptionClick = { journey: Journey, option: JourneyContextMenuOption ->
+                when (option) {
+                    JourneyContextMenuOption.DELETE ->
+                        viewModel.onEvent(UIEvent.OnContextMenuDeleteClicked)
+
+                    JourneyContextMenuOption.EDIT ->
+                        viewModel.onEvent(UIEvent.OnContextMenuEditClicked)
+
+                    JourneyContextMenuOption.RESET ->
+                        viewModel.onEvent(UIEvent.OnContextMenuResetClicked)
+                }
+            })
     }
 }

@@ -20,7 +20,7 @@ interface JourneyDao {
     fun getAll(): List<Journey>
 
     @Insert
-    fun insert(journey: Journey)
+    fun insert(journey: Journey): Long
 
     @Update
     fun update(journey: Journey)

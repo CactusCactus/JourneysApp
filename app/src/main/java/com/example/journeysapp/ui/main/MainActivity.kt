@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,20 +18,27 @@ import androidx.compose.ui.res.stringResource
 import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyContextMenuOption
+import com.example.journeysapp.ui.bottomSheets.AddJourneyBottomSheet
+import com.example.journeysapp.ui.bottomSheets.EditJourneyBottomSheet
+import com.example.journeysapp.ui.bottomSheets.JourneyContextMenuBottomSheet
 import com.example.journeysapp.ui.common.ConfirmDialog
 import com.example.journeysapp.ui.details.DetailsActivity
 import com.example.journeysapp.ui.main.composables.JourneysLazyColumn
 import com.example.journeysapp.ui.main.composables.MainBottomBar
 import com.example.journeysapp.ui.main.composables.MainTopBar
-import com.example.journeysapp.ui.main.composables.bottomSheets.AddJourneyBottomSheet
-import com.example.journeysapp.ui.main.composables.bottomSheets.EditJourneyBottomSheet
-import com.example.journeysapp.ui.main.composables.bottomSheets.JourneyContextMenuBottomSheet
 import com.example.journeysapp.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
+
+    private val detailsResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) {
+                mainViewModel.onEvent(UIEvent.Refresh)
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,12 +80,11 @@ class MainActivity : ComponentActivity() {
         LaunchedEffect(key1 = true) {
             mainViewModel.navEvent.collect { event ->
                 when (event) {
-                    is NavEvent.ToJourneyDetails -> startActivity(
-                        DetailsActivity.newIntent(
-                            this@MainActivity,
-                            event.journeyId
+                    is NavEvent.ToJourneyDetails -> {
+                        detailsResult.launch(
+                            DetailsActivity.newIntent(this@MainActivity, event.journeyId)
                         )
-                    )
+                    }
                 }
             }
         }

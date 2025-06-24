@@ -27,4 +27,7 @@
     <string name="goal_completion_more_than">You did it!</string>
     <string name="reset_journey_goal_dialog_text">Are you sure you want to reset progress of </string>
     <string name="error_fetching_journey">Error fetching journey</string>
+    <string name="goal_label">Goal</string>
+    <string name="currently_goal_progress">Currently</string>
+    <string name="details_title_default">Details</string>
 </resources>

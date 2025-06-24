@@ -25,7 +25,7 @@ class JourneyRepository @Inject constructor(private val dao: JourneyDao) {
         }
     }
 
-    suspend fun insertJourney(journey: Journey) = withContext(Dispatchers.IO) {
+    suspend fun insertJourney(journey: Journey): Long = withContext(Dispatchers.IO) {
         dao.insert(journey).also {
             Timber.d("Inserted Journey: id=$it, name=${journey.name}")
         }

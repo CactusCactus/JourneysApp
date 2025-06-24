@@ -38,10 +38,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
-import com.example.journeysapp.ui.common.StepsProgressIndicator
+import com.example.journeysapp.ui.common.StepsOverflowProgressIndicator
 import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardPadding
 import com.example.journeysapp.ui.theme.standardQuarterPadding
+import com.example.journeysapp.util.goalSummaryString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,17 +150,14 @@ fun JourneyRow(
                     style = MaterialTheme.typography.labelMedium
                 )
             } else {
-                val goalString = item.goal.goalType.toString(LocalContext.current) + " " +
-                        item.goal.value + " " +
-                        item.goal.unit.lowercase() + " " +
-                        item.goal.goalFrequency.toString(LocalContext.current).lowercase()
+                val goalString = item.goal.goalSummaryString(LocalContext.current)
 
                 Text(
                     text = goalString,
                     style = MaterialTheme.typography.labelMedium
                 )
 
-                StepsProgressIndicator(
+                StepsOverflowProgressIndicator(
                     checkedSteps = item.goal.progress,
                     maxSteps = item.goal.value,
                     modifier = Modifier.fillMaxWidth()

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.repositories.JourneyRepository
+import com.example.journeysapp.ui.main.NavEvent.ToJourneyDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,8 +49,11 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
                 _uiState.value.copy(addBottomSheetOpen = false)
 
             is UIEvent.OnJourneyCreated -> viewModelScope.launch {
-                repository.insertJourney(event.journey)
-                journeyList.add(event.journey)
+                val id = repository.insertJourney(event.journey)
+
+                if (id != -1L) {
+                    journeyList.add(event.journey.copy(uid = id))
+                }
             }
 
             // Journey context menu events
@@ -131,7 +135,12 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
 
             // Details
             is UIEvent.OnJourneyDetailsClick -> viewModelScope.launch {
-                _navEvent.emit(NavEvent.ToJourneyDetails(event.journey.uid))
+                _navEvent.emit(ToJourneyDetails(event.journey.uid))
+            }
+
+            UIEvent.Refresh -> viewModelScope.launch {
+                journeyList.clear()
+                journeyList.addAll(repository.getAllJourneys())
             }
         }
     }
@@ -153,38 +162,40 @@ data class UiState(
     val confirmResetDialogShowing: Boolean = false
 )
 
-sealed class UIEvent {
-    data object OnJourneyAddClick : UIEvent()
+sealed interface UIEvent {
+    data object Refresh : UIEvent
 
-    data object OnAddSheetDismiss : UIEvent()
+    data object OnJourneyAddClick : UIEvent
 
-    data class OnJourneyEditClick(val editedJourney: Journey) : UIEvent()
+    data object OnAddSheetDismiss : UIEvent
 
-    data class OnJourneyEdited(val journey: Journey) : UIEvent()
+    data class OnJourneyEditClick(val editedJourney: Journey) : UIEvent
 
-    data object OnEditSheetDismiss : UIEvent()
+    data class OnJourneyEdited(val journey: Journey) : UIEvent
 
-    data object OnJourneyDeleteClick : UIEvent()
+    data object OnEditSheetDismiss : UIEvent
 
-    data object OnGoalResetClick : UIEvent()
+    data object OnJourneyDeleteClick : UIEvent
 
-    data class OnJourneyContextMenuClick(val journey: Journey) : UIEvent()
+    data object OnGoalResetClick : UIEvent
 
-    data object OnDeleteJourneyDialogDismiss : UIEvent()
+    data class OnJourneyContextMenuClick(val journey: Journey) : UIEvent
 
-    data object OnResetJourneyDialogDismiss : UIEvent()
+    data object OnDeleteJourneyDialogDismiss : UIEvent
 
-    data object OnContextMenuSheetDismiss : UIEvent()
+    data object OnResetJourneyDialogDismiss : UIEvent
 
-    data class OnJourneyCreated(val journey: Journey) : UIEvent()
+    data object OnContextMenuSheetDismiss : UIEvent
 
-    data class OnJourneyDeleted(val journey: Journey) : UIEvent()
+    data class OnJourneyCreated(val journey: Journey) : UIEvent
 
-    data class OnGoalIncremented(val journey: Journey) : UIEvent()
+    data class OnJourneyDeleted(val journey: Journey) : UIEvent
 
-    data class OnGoalReset(val journey: Journey) : UIEvent()
+    data class OnGoalIncremented(val journey: Journey) : UIEvent
 
-    data class OnJourneyDetailsClick(val journey: Journey) : UIEvent()
+    data class OnGoalReset(val journey: Journey) : UIEvent
+
+    data class OnJourneyDetailsClick(val journey: Journey) : UIEvent
 }
 
 sealed class NavEvent {
