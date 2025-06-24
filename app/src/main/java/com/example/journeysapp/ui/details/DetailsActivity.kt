@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -164,7 +165,9 @@ class DetailsActivity : ComponentActivity() {
             onJourneyEditedRequest = {
                 viewModel.onEvent(OnJourneyEdited(it))
                 setResult(RESULT_OK)
-            }
+            },
+            startWithOpenedIconsPicker =
+                viewModel.uiState.collectAsState().value.editSheetIconPickerShowing
         )
     }
 
@@ -222,7 +225,8 @@ class DetailsActivity : ComponentActivity() {
                         .background(
                             color = MaterialTheme.colorScheme.secondaryContainer,
                             shape = CardDefaults.shape
-                        ),
+                        )
+                        .clickable { viewModel.onEvent(UIEvent.OnContextMenuEditClicked(true)) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -286,7 +290,7 @@ class DetailsActivity : ComponentActivity() {
                         viewModel.onEvent(UIEvent.OnContextMenuDeleteClicked)
 
                     JourneyContextMenuOption.EDIT ->
-                        viewModel.onEvent(UIEvent.OnContextMenuEditClicked)
+                        viewModel.onEvent(UIEvent.OnContextMenuEditClicked())
 
                     JourneyContextMenuOption.RESET ->
                         viewModel.onEvent(UIEvent.OnContextMenuResetClicked)

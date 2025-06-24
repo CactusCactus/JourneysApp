@@ -67,13 +67,15 @@ class DetailsViewModel @Inject constructor(
                 confirmDeleteDialogShowing = false
             )
 
-            UIEvent.OnContextMenuEditClicked -> _uiState.value = _uiState.value.copy(
+            is UIEvent.OnContextMenuEditClicked -> _uiState.value = _uiState.value.copy(
                 contextMenuSheetOpen = false,
+                editSheetIconPickerShowing = event.showIconPicker,
                 editSheetShowing = true
             )
 
             UIEvent.OnEditSheetDismiss -> _uiState.value = _uiState.value.copy(
-                editSheetShowing = false
+                editSheetShowing = false,
+                editSheetIconPickerShowing = false
             )
 
             UIEvent.OnJourneyDeleted -> viewModelScope.launch {
@@ -117,7 +119,7 @@ class DetailsViewModel @Inject constructor(
 
         object OnJourneyDeleteDialogDismiss : UIEvent
 
-        object OnContextMenuEditClicked : UIEvent
+        data class OnContextMenuEditClicked(val showIconPicker: Boolean = false) : UIEvent
 
         object OnEditSheetDismiss : UIEvent
 
@@ -136,6 +138,7 @@ class DetailsViewModel @Inject constructor(
         val journey: Journey? = null,
         val contextMenuSheetOpen: Boolean = false,
         val editSheetShowing: Boolean = false,
+        val editSheetIconPickerShowing: Boolean = false,
         val confirmDeleteDialogShowing: Boolean = false,
         val confirmResetDialogShowing: Boolean = false,
     )

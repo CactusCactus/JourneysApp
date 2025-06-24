@@ -67,7 +67,8 @@ import com.example.journeysapp.ui.theme.standardQuarterPadding
 fun AddJourneyBottomSheet(
     onDismissRequest: () -> Unit,
     onJourneyCreatedRequest: (Journey) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    startWithOpenedIconsPicker: Boolean = false
 ) {
     ModifyJourneyBottomSheet(
         title = stringResource(R.string.add_new_journey_title),
@@ -76,7 +77,8 @@ fun AddJourneyBottomSheet(
         onConfirmRequest = { name: String, icon: JourneyIcon, goal: Goal ->
             onJourneyCreatedRequest(Journey(name = name, icon = icon, goal = goal))
         },
-        modifier = modifier
+        modifier = modifier,
+        startWithOpenedIconsPicker = startWithOpenedIconsPicker
     )
 }
 
@@ -85,7 +87,8 @@ fun EditJourneyBottomSheet(
     journey: Journey,
     onDismissRequest: () -> Unit,
     onJourneyEditedRequest: (Journey) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    startWithOpenedIconsPicker: Boolean = false
 ) {
     ModifyJourneyBottomSheet(
         title = stringResource(R.string.edit_new_journey_title) + " ${journey.name}",
@@ -97,7 +100,8 @@ fun EditJourneyBottomSheet(
         journeyName = journey.name,
         journeyIcon = journey.icon,
         journeyGoal = journey.goal,
-        modifier = modifier
+        modifier = modifier,
+        startWithOpenedIconsPicker = startWithOpenedIconsPicker
     )
 }
 
@@ -119,6 +123,7 @@ private fun ModifyJourneyBottomSheet(
         goalFrequency = GoalFrequency.DAILY
     ),
     namePlaceholder: String = stringResource(R.string.add_new_journey_hint),
+    startWithOpenedIconsPicker: Boolean = false
 ) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -131,7 +136,7 @@ private fun ModifyJourneyBottomSheet(
         Column(modifier = Modifier.padding(standardPadding)) {
             var selectedJourneyName by remember { mutableStateOf(journeyName) }
             var selectedIcon by remember { mutableStateOf(journeyIcon) }
-            var isIconPickerShowing by remember { mutableStateOf(false) }
+            var isIconPickerShowing by remember { mutableStateOf(startWithOpenedIconsPicker) }
 
             Text(text = title, style = MaterialTheme.typography.displaySmall)
 
