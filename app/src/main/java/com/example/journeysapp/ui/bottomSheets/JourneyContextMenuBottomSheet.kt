@@ -16,7 +16,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyContextMenuOption
 import com.example.journeysapp.ui.common.StandardListRow
-import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,8 +37,6 @@ fun JourneyContextMenuBottomSheet(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(standardPadding)
             )
-
-            StandardSpacer()
 
             LazyColumn {
                 items(JourneyContextMenuOption.entries.toTypedArray()) {

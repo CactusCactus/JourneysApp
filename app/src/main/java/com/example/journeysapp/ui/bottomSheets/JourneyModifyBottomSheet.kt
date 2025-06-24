@@ -129,7 +129,6 @@ private fun ModifyJourneyBottomSheet(
         modifier = modifier
     ) {
         Column(modifier = Modifier.padding(standardPadding)) {
-
             var selectedJourneyName by remember { mutableStateOf(journeyName) }
             var selectedIcon by remember { mutableStateOf(journeyIcon) }
             var isIconPickerShowing by remember { mutableStateOf(false) }

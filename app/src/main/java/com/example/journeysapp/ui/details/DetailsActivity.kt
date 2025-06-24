@@ -37,15 +37,19 @@ import androidx.compose.ui.unit.dp
 import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyContextMenuOption
+import com.example.journeysapp.ui.bottomSheets.EditJourneyBottomSheet
 import com.example.journeysapp.ui.bottomSheets.JourneyContextMenuBottomSheet
 import com.example.journeysapp.ui.common.ConfirmDialog
 import com.example.journeysapp.ui.common.StepsProgressIndicator
 import com.example.journeysapp.ui.details.DetailsViewModel.UIEvent
+import com.example.journeysapp.ui.details.DetailsViewModel.UIEvent.OnEditSheetDismiss
+import com.example.journeysapp.ui.details.DetailsViewModel.UIEvent.OnJourneyEdited
 import com.example.journeysapp.ui.details.DetailsViewModel.UIState
 import com.example.journeysapp.ui.theme.AppTheme
 import com.example.journeysapp.ui.theme.StandardHalfSpacer
 import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardPadding
+import com.example.journeysapp.ui.theme.standardQuarterPadding
 import com.example.journeysapp.util.goalSummaryString
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -75,25 +79,33 @@ class DetailsActivity : ComponentActivity() {
 
                     DetailsScreen(uiState, paddingValues)
 
-                    val journey = uiState.journey
-
-                    if (journey != null) {
-                        if (uiState.contextMenuSheetOpen) {
-                            ShowContextMenuBottomSheet(journey)
-                        }
-
-                        if (uiState.confirmDeleteDialogShowing) {
-                            ShowDeleteConfirmDialog(journey)
-                        }
-
-                        if (uiState.confirmResetDialogShowing) {
-                            ShowResetProgressConfirmDialog(journey)
-                        }
-
-                    }
+                    ShowDialogsAndBottomSheets(uiState)
 
                     ObserveNavigationEvents()
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun ShowDialogsAndBottomSheets(uiState: UIState) {
+        val journey = uiState.journey
+
+        if (journey != null) {
+            if (uiState.contextMenuSheetOpen) {
+                ShowContextMenuBottomSheet(journey)
+            }
+
+            if (uiState.confirmDeleteDialogShowing) {
+                ShowDeleteConfirmDialog(journey)
+            }
+
+            if (uiState.confirmResetDialogShowing) {
+                ShowResetProgressConfirmDialog(journey)
+            }
+
+            if (uiState.editSheetShowing) {
+                ShowEditJourneyBottomSheet(journey)
             }
         }
     }
@@ -144,6 +156,18 @@ class DetailsActivity : ComponentActivity() {
         )
     }
 
+    @Composable
+    private fun ShowEditJourneyBottomSheet(journeyToEdit: Journey) {
+        EditJourneyBottomSheet(
+            journey = journeyToEdit,
+            onDismissRequest = { viewModel.onEvent(OnEditSheetDismiss) },
+            onJourneyEditedRequest = {
+                viewModel.onEvent(OnJourneyEdited(it))
+                setResult(RESULT_OK)
+            }
+        )
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun DetailsTopBar() {
@@ -161,7 +185,13 @@ class DetailsActivity : ComponentActivity() {
                 IconButton(onClick = {
                     viewModel.onEvent(UIEvent.OnContextMenuSheetOpen)
                 }) {
-                    Icon(painterResource(R.drawable.ic_more_vert_24), "Open context menu")
+                    Icon(
+                        painterResource(R.drawable.ic_more_vert_24),
+                        "Open context menu",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(standardQuarterPadding)
+                    )
                 }
             })
     }

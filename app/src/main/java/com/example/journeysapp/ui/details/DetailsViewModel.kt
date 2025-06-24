@@ -67,7 +67,14 @@ class DetailsViewModel @Inject constructor(
                 confirmDeleteDialogShowing = false
             )
 
-            UIEvent.OnContextMenuEditClicked -> TODO()
+            UIEvent.OnContextMenuEditClicked -> _uiState.value = _uiState.value.copy(
+                contextMenuSheetOpen = false,
+                editSheetShowing = true
+            )
+
+            UIEvent.OnEditSheetDismiss -> _uiState.value = _uiState.value.copy(
+                editSheetShowing = false
+            )
 
             UIEvent.OnJourneyDeleted -> viewModelScope.launch {
                 uiState.value.journey?.let {
@@ -88,7 +95,15 @@ class DetailsViewModel @Inject constructor(
                         confirmResetDialogShowing = false
                     )
                 }
+            }
 
+            is UIEvent.OnJourneyEdited -> viewModelScope.launch {
+                repository.updateJourney(event.journey)
+
+                _uiState.value = _uiState.value.copy(
+                    journey = event.journey,
+                    editSheetShowing = false
+                )
             }
         }
     }
@@ -100,26 +115,28 @@ class DetailsViewModel @Inject constructor(
 
         object OnContextMenuDeleteClicked : UIEvent
 
+        object OnJourneyDeleteDialogDismiss : UIEvent
+
         object OnContextMenuEditClicked : UIEvent
+
+        object OnEditSheetDismiss : UIEvent
 
         object OnContextMenuResetClicked : UIEvent
 
+        object OnGoalResetDialogDismiss : UIEvent
+
         object OnJourneyDeleted : UIEvent
 
+        data class OnJourneyEdited(val journey: Journey) : UIEvent
+
         object OnGoalReset : UIEvent
-
-        object OnJourneyDeleteDialogDismiss : UIEvent
-
-        object OnGoalResetDialogDismiss : UIEvent
     }
 
     data class UIState(
         val journey: Journey? = null,
-
         val contextMenuSheetOpen: Boolean = false,
-
+        val editSheetShowing: Boolean = false,
         val confirmDeleteDialogShowing: Boolean = false,
-
         val confirmResetDialogShowing: Boolean = false,
     )
 
