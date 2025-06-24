@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.repositories.JourneyRepository
+import com.example.journeysapp.ui.details.DetailsViewModel.NavEvent.Finish
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +36,7 @@ class DetailsViewModel @Inject constructor(
             journeyId?.let {
                 _uiState.value = _uiState.value.copy(journey = repository.getJourney(it))
             } ?: run {
-                _navEvent.emit(NavEvent.Finish(Activity.RESULT_CANCELED))
+                _navEvent.emit(Finish(Activity.RESULT_CANCELED))
             }
         }
     }
@@ -50,20 +51,44 @@ class DetailsViewModel @Inject constructor(
                 contextMenuSheetOpen = true
             )
 
-            UIEvent.OnContextMenuDeleteClicked -> viewModelScope.launch {
-                uiState.value.journey?.let {
-                    repository.deleteJourney(it)
-                }
+            UIEvent.OnContextMenuDeleteClicked -> _uiState.value = _uiState.value.copy(
+                confirmDeleteDialogShowing = true
+            )
 
-                _navEvent.emit(NavEvent.Finish(Activity.RESULT_OK))
-            }
+            UIEvent.OnContextMenuResetClicked -> _uiState.value = _uiState.value.copy(
+                confirmResetDialogShowing = true
+            )
+
+            UIEvent.OnGoalResetDialogDismiss -> _uiState.value = _uiState.value.copy(
+                confirmResetDialogShowing = false
+            )
+
+            UIEvent.OnJourneyDeleteDialogDismiss -> _uiState.value = _uiState.value.copy(
+                confirmDeleteDialogShowing = false
+            )
 
             UIEvent.OnContextMenuEditClicked -> TODO()
-            UIEvent.OnContextMenuResetClicked -> TODO()
+
             UIEvent.OnJourneyDeleted -> viewModelScope.launch {
                 uiState.value.journey?.let {
                     repository.deleteJourney(it)
                 }
+
+                _navEvent.emit(Finish(Activity.RESULT_OK))
+            }
+
+            UIEvent.OnGoalReset -> viewModelScope.launch {
+                uiState.value.journey?.let {
+                    repository.resetGoalProgress(it.uid)
+                    val goal = it.goal.copy(progress = 0)
+
+                    _uiState.value = _uiState.value.copy(
+                        journey = it.copy(goal = goal),
+                        contextMenuSheetOpen = false,
+                        confirmResetDialogShowing = false
+                    )
+                }
+
             }
         }
     }
@@ -80,6 +105,12 @@ class DetailsViewModel @Inject constructor(
         object OnContextMenuResetClicked : UIEvent
 
         object OnJourneyDeleted : UIEvent
+
+        object OnGoalReset : UIEvent
+
+        object OnJourneyDeleteDialogDismiss : UIEvent
+
+        object OnGoalResetDialogDismiss : UIEvent
     }
 
     data class UIState(
@@ -88,6 +119,8 @@ class DetailsViewModel @Inject constructor(
         val contextMenuSheetOpen: Boolean = false,
 
         val confirmDeleteDialogShowing: Boolean = false,
+
+        val confirmResetDialogShowing: Boolean = false,
     )
 
     sealed interface NavEvent {

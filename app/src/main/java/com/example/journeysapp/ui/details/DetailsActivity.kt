@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +38,7 @@ import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyContextMenuOption
 import com.example.journeysapp.ui.bottomSheets.JourneyContextMenuBottomSheet
+import com.example.journeysapp.ui.common.ConfirmDialog
 import com.example.journeysapp.ui.common.StepsProgressIndicator
 import com.example.journeysapp.ui.details.DetailsViewModel.UIEvent
 import com.example.journeysapp.ui.details.DetailsViewModel.UIState
@@ -75,8 +77,19 @@ class DetailsActivity : ComponentActivity() {
 
                     val journey = uiState.journey
 
-                    if (uiState.contextMenuSheetOpen && journey != null) {
-                        ShowContextMenuBottomSheet(journey)
+                    if (journey != null) {
+                        if (uiState.contextMenuSheetOpen) {
+                            ShowContextMenuBottomSheet(journey)
+                        }
+
+                        if (uiState.confirmDeleteDialogShowing) {
+                            ShowDeleteConfirmDialog(journey)
+                        }
+
+                        if (uiState.confirmResetDialogShowing) {
+                            ShowResetProgressConfirmDialog(journey)
+                        }
+
                     }
 
                     ObserveNavigationEvents()
@@ -97,6 +110,38 @@ class DetailsActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    @Composable
+    private fun ShowDeleteConfirmDialog(journey: Journey) {
+        ConfirmDialog(
+            onConfirmListener = {
+                viewModel.onEvent(UIEvent.OnJourneyDeleted)
+            },
+            onDismissListener = {
+                viewModel.onEvent(UIEvent.OnJourneyDeleteDialogDismiss)
+            },
+            title = stringResource(R.string.delete_journey_dialog_title),
+            text = stringResource(R.string.delete_journey_dialog_text) + " ${journey.name}?",
+            icon = R.drawable.ic_delete_24,
+            iconTint = colorResource(R.color.color_error),
+        )
+    }
+
+    @Composable
+    private fun ShowResetProgressConfirmDialog(journey: Journey) {
+        ConfirmDialog(
+            onConfirmListener = {
+                viewModel.onEvent(UIEvent.OnGoalReset)
+                setResult(RESULT_OK)
+            },
+            onDismissListener = {
+                viewModel.onEvent(UIEvent.OnGoalResetDialogDismiss)
+            },
+            title = stringResource(R.string.goal_reset_progress),
+            text = stringResource(R.string.reset_journey_goal_dialog_text) + " ${journey.name}?",
+            icon = R.drawable.ic_refresh_24
+        )
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
