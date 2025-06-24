@@ -77,6 +77,10 @@ dependencies {
     // Work Manager
     implementation(libs.androidx.work.runtime.ktx)
 
+    // Vico Graphs
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+
     // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
