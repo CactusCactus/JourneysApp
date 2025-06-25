@@ -1,5 +1,6 @@
 package com.example.journeysapp.ui.bottomSheets
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -62,6 +63,7 @@ import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardHalfPadding
 import com.example.journeysapp.ui.theme.standardPadding
 import com.example.journeysapp.ui.theme.standardQuarterPadding
+import com.example.journeysapp.util.MAX_GOAL_VALUE
 
 @Composable
 fun AddJourneyBottomSheet(
@@ -150,12 +152,32 @@ private fun ModifyJourneyBottomSheet(
 
             StandardHalfSpacer()
 
+            var error: InputError? by remember { mutableStateOf(null) }
+
             IconNameInputRow(
                 journeyName = selectedJourneyName,
                 journeyNamePlaceholder = namePlaceholder,
                 selectedIcon = selectedIcon,
                 onIconClicked = { isIconPickerShowing = !isIconPickerShowing },
-                onNameValueChanged = { value: String -> selectedJourneyName = value })
+                onNameValueChanged = {
+                    selectedJourneyName = it
+
+                    error = if (it.isBlank()) {
+                        InputError.CANT_BE_EMPTY
+                    } else {
+                        null
+                    }
+                },
+                isError = error != null,
+                supportingText = {
+                    error?.let {
+                        Text(
+                            text = it.toString(LocalContext.current),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+            )
 
             AnimatedVisibility(isIconPickerShowing) {
                 Column {
@@ -189,7 +211,13 @@ private fun ModifyJourneyBottomSheet(
 
             StandardSpacer()
 
+            val isGoalValid = selectedJourneyName.isNotBlank()
+                    && currentJourneyGoal.value > 0
+                    && currentJourneyGoal.value < MAX_GOAL_VALUE
+                    && currentJourneyGoal.unit.isNotBlank()
+
             Button(
+                enabled = isGoalValid,
                 onClick = {
                     onConfirmRequest(
                         selectedJourneyName,
@@ -213,7 +241,7 @@ private fun GoalFrequencyInputRow(
     onGoalTypeChanged: (GoalType) -> Unit,
     onValueChanged: (Int) -> Unit,
     onUnitChanged: (String) -> Unit,
-    onFrequencyChanged: (GoalFrequency) -> Unit
+    onFrequencyChanged: (GoalFrequency) -> Unit,
 ) {
     // Goal type
     Text(
@@ -310,35 +338,49 @@ private fun GoalValueInputRow(
     initialValue: Int,
     onValueChanged: (Int) -> Unit,
     onUnitChanged: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    maxValue: Int = MAX_GOAL_VALUE
 ) {
     var numericStringValue by remember { mutableStateOf(initialValue.toString()) }
-    var isError by remember { mutableStateOf(false) }
+    var error: InputError? by remember { mutableStateOf(null) }
 
     Row(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
         OutlinedTextField(
             value = numericStringValue,
             onValueChange = {
-                val numericValue = it.toIntOrNull() ?: 0
-                isError = !validateGoalValue(numericValue)
+                error = if (!validateGoalValue(it)) {
+                    InputError.GENERIC
+                } else if ((it.toIntOrNull() ?: 0) > maxValue) {
+                    InputError.ABOVE_MAX_VALUE
+                } else if (it.isBlank()) {
+                    InputError.CANT_BE_EMPTY
+                } else {
+                    null
+                }
 
                 if (it.isDigitsOnly()) {
                     numericStringValue = it
                 }
 
-                if (!isError) {
-                    onValueChanged(it.toIntOrNull() ?: 0)
-                }
+                onValueChanged(it.toIntOrNull() ?: 0)
             },
             placeholder = { Text(stringResource(R.string.new_journey_goal_value_hint)) },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Done
             ),
-            isError = isError,
+            isError = error != null,
+            supportingText = {
+                error?.let {
+                    Text(
+                        text = it.toString(LocalContext.current),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
             singleLine = true,
             modifier = Modifier
                 .widthIn(min = 24.dp)
@@ -349,17 +391,21 @@ private fun GoalValueInputRow(
 
         val defaultUnit = stringResource(R.string.new_journey_goal_value_label)
         var goalUnit by remember { mutableStateOf(defaultUnit) }
+        var error: InputError? by remember { mutableStateOf(null) }
+
 
         TextField(
             value = goalUnit,
             onValueChange = {
                 goalUnit = it
 
-                if (it.isNotBlank()) {
-                    onUnitChanged(it)
+                error = if (it.isNotBlank()) {
+                    null
                 } else {
-                    onUnitChanged(defaultUnit)
+                    InputError.CANT_BE_EMPTY
                 }
+
+                onUnitChanged(it)
             },
             placeholder = { Text(text = defaultUnit) },
             colors = TextFieldDefaults.colors().copy(
@@ -368,6 +414,15 @@ private fun GoalValueInputRow(
                 errorContainerColor = Color.Transparent,
                 disabledContainerColor = Color.Transparent
             ),
+            isError = error != null,
+            supportingText = {
+                error?.let {
+                    Text(
+                        text = it.toString(LocalContext.current),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
             singleLine = true,
             modifier = Modifier
                 .widthIn(min = 24.dp)
@@ -376,8 +431,8 @@ private fun GoalValueInputRow(
     }
 }
 
-private fun validateGoalValue(value: Int): Boolean {
-    return value > 0
+private fun validateGoalValue(value: String): Boolean {
+    return value.isDigitsOnly() && (value.toIntOrNull() ?: 0) > 0
 }
 
 @Composable
@@ -386,10 +441,12 @@ private fun IconNameInputRow(
     journeyName: String,
     journeyNamePlaceholder: String,
     onIconClicked: () -> Unit,
-    onNameValueChanged: (String) -> Unit
+    onNameValueChanged: (String) -> Unit,
+    isError: Boolean = false,
+    supportingText: @Composable () -> Unit = {}
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.Start,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -404,6 +461,8 @@ private fun IconNameInputRow(
             value = journeyName,
             onValueChange = onNameValueChanged,
             placeholder = { Text(journeyNamePlaceholder) },
+            isError = isError,
+            supportingText = supportingText,
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -448,5 +507,15 @@ private fun JourneyIconButton(icon: JourneyIcon, onClick: () -> Unit) {
                 .padding(standardHalfPadding),
             tint = MaterialTheme.colorScheme.primary
         )
+    }
+}
+
+enum class InputError {
+    GENERIC, ABOVE_MAX_VALUE, CANT_BE_EMPTY;
+
+    fun toString(context: Context) = when (this) {
+        GENERIC -> context.getString(R.string.goal_value_error_default)
+        ABOVE_MAX_VALUE -> context.getString(R.string.goal_value_error_above_max)
+        CANT_BE_EMPTY -> context.getString(R.string.goal_value_error_empty)
     }
 }
