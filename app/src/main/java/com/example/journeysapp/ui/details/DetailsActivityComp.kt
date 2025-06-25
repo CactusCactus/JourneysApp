@@ -40,7 +40,10 @@ fun GoalHistoryGraph(
         }
     }
 
-    val bottomAxis = HorizontalAxis.rememberBottom(valueFormatter = BottomAxisValueFormatter)
+    val bottomAxis = HorizontalAxis.rememberBottom(
+        valueFormatter = BottomAxisValueFormatter,
+        guideline = null
+    )
 
     ProvideVicoTheme(rememberM3VicoTheme()) {
         CartesianChartHost(
