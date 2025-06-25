@@ -35,9 +35,6 @@ import com.example.journeysapp.ui.bottomSheets.EditJourneyBottomSheet
 import com.example.journeysapp.ui.bottomSheets.JourneyContextMenuBottomSheet
 import com.example.journeysapp.ui.common.ConfirmDialog
 import com.example.journeysapp.ui.details.DetailsActivity
-import com.example.journeysapp.ui.main.composables.JourneysLazyColumn
-import com.example.journeysapp.ui.main.composables.MainBottomBar
-import com.example.journeysapp.ui.main.composables.MainTopBar
 import com.example.journeysapp.ui.theme.AppTheme
 import com.example.journeysapp.ui.theme.standardPadding
 import dagger.hilt.android.AndroidEntryPoint

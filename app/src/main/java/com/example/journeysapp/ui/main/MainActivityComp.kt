@@ -1,4 +1,4 @@
-package com.example.journeysapp.ui.main.composables
+package com.example.journeysapp.ui.main
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
