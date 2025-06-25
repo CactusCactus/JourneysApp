@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -91,29 +92,6 @@ class DetailsActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun ShowDialogsAndBottomSheets(uiState: UIState) {
-        val journey = uiState.journey
-
-        if (journey != null) {
-            if (uiState.contextMenuSheetOpen) {
-                ShowContextMenuBottomSheet(journey)
-            }
-
-            if (uiState.confirmDeleteDialogShowing) {
-                ShowDeleteConfirmDialog(journey)
-            }
-
-            if (uiState.confirmResetDialogShowing) {
-                ShowResetProgressConfirmDialog(journey)
-            }
-
-            if (uiState.editSheetShowing) {
-                ShowEditJourneyBottomSheet(journey)
-            }
-        }
-    }
-
-    @Composable
     private fun ObserveNavigationEvents() {
         LaunchedEffect(key1 = true) {
             viewModel.navEvent.collect { event ->
@@ -122,52 +100,6 @@ class DetailsActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    @Composable
-    private fun ShowDeleteConfirmDialog(journey: Journey) {
-        ConfirmDialog(
-            onConfirmListener = {
-                viewModel.onEvent(UIEvent.OnJourneyDeleted)
-            },
-            onDismissListener = {
-                viewModel.onEvent(UIEvent.OnJourneyDeleteDialogDismiss)
-            },
-            title = stringResource(R.string.delete_journey_dialog_title),
-            text = stringResource(R.string.delete_journey_dialog_text) + " ${journey.name}?",
-            icon = R.drawable.ic_delete_24,
-            iconTint = colorResource(R.color.color_error),
-        )
-    }
-
-    @Composable
-    private fun ShowResetProgressConfirmDialog(journey: Journey) {
-        ConfirmDialog(
-            onConfirmListener = {
-                viewModel.onEvent(UIEvent.OnGoalReset)
-                setResult(RESULT_OK)
-            },
-            onDismissListener = {
-                viewModel.onEvent(UIEvent.OnGoalResetDialogDismiss)
-            },
-            title = stringResource(R.string.goal_reset_progress),
-            text = stringResource(R.string.reset_journey_goal_dialog_text) + " ${journey.name}?",
-            icon = R.drawable.ic_refresh_24
-        )
-    }
-
-    @Composable
-    private fun ShowEditJourneyBottomSheet(journeyToEdit: Journey) {
-        EditJourneyBottomSheet(
-            journey = journeyToEdit,
-            onDismissRequest = { viewModel.onEvent(OnEditSheetDismiss) },
-            onJourneyEditedRequest = {
-                viewModel.onEvent(OnJourneyEdited(it))
-                setResult(RESULT_OK)
-            },
-            startWithOpenedIconsPicker =
-                viewModel.uiState.collectAsState().value.editSheetIconPickerShowing
-        )
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -200,23 +132,35 @@ class DetailsActivity : ComponentActivity() {
 
     @Composable
     private fun DetailsScreen(uiState: UIState, paddingValues: PaddingValues) {
-        uiState.journey?.let {
-            JourneyHeader(it, paddingValues)
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(standardPadding)
+        ) {
+            uiState.journey?.let {
+                JourneyHeader(it)
+            }
+
+            StandardSpacer()
+
+            if (uiState.goalHistory.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.graph_label),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                GoalHistoryGraph(uiState.goalHistory)
+            }
         }
     }
 
     @Composable
     private fun JourneyHeader(
         journey: Journey,
-        paddingValues: PaddingValues,
         modifier: Modifier = Modifier
     ) {
-        Row(
-            modifier = modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .padding(standardPadding)
-        ) {
+        Row(modifier = modifier.fillMaxWidth()) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
@@ -292,6 +236,76 @@ class DetailsActivity : ComponentActivity() {
             }
 
         }
+    }
+
+
+    @Composable
+    private fun ShowDialogsAndBottomSheets(uiState: UIState) {
+        val journey = uiState.journey
+
+        if (journey != null) {
+            if (uiState.contextMenuSheetOpen) {
+                ShowContextMenuBottomSheet(journey)
+            }
+
+            if (uiState.confirmDeleteDialogShowing) {
+                ShowDeleteConfirmDialog(journey)
+            }
+
+            if (uiState.confirmResetDialogShowing) {
+                ShowResetProgressConfirmDialog(journey)
+            }
+
+            if (uiState.editSheetShowing) {
+                ShowEditJourneyBottomSheet(journey)
+            }
+        }
+    }
+
+    @Composable
+    private fun ShowDeleteConfirmDialog(journey: Journey) {
+        ConfirmDialog(
+            onConfirmListener = {
+                viewModel.onEvent(UIEvent.OnJourneyDeleted)
+            },
+            onDismissListener = {
+                viewModel.onEvent(UIEvent.OnJourneyDeleteDialogDismiss)
+            },
+            title = stringResource(R.string.delete_journey_dialog_title),
+            text = stringResource(R.string.delete_journey_dialog_text) + " ${journey.name}?",
+            icon = R.drawable.ic_delete_24,
+            iconTint = colorResource(R.color.color_error),
+        )
+    }
+
+    @Composable
+    private fun ShowResetProgressConfirmDialog(journey: Journey) {
+        ConfirmDialog(
+            onConfirmListener = {
+                viewModel.onEvent(UIEvent.OnGoalReset)
+                setResult(RESULT_OK)
+            },
+            onDismissListener = {
+                viewModel.onEvent(UIEvent.OnGoalResetDialogDismiss)
+            },
+            title = stringResource(R.string.goal_reset_progress),
+            text = stringResource(R.string.reset_journey_goal_dialog_text) + " ${journey.name}?",
+            icon = R.drawable.ic_refresh_24
+        )
+    }
+
+    @Composable
+    private fun ShowEditJourneyBottomSheet(journeyToEdit: Journey) {
+        EditJourneyBottomSheet(
+            journey = journeyToEdit,
+            onDismissRequest = { viewModel.onEvent(OnEditSheetDismiss) },
+            onJourneyEditedRequest = {
+                viewModel.onEvent(OnJourneyEdited(it))
+                setResult(RESULT_OK)
+            },
+            startWithOpenedIconsPicker =
+                viewModel.uiState.collectAsState().value.editSheetIconPickerShowing
+        )
     }
 
     @Composable

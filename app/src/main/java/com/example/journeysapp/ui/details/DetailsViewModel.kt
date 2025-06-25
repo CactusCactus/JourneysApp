@@ -3,7 +3,9 @@ package com.example.journeysapp.ui.details
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.journeysapp.data.model.GoalHistory
 import com.example.journeysapp.data.model.Journey
+import com.example.journeysapp.data.repositories.GoalHistoryRepository
 import com.example.journeysapp.data.repositories.JourneyRepository
 import com.example.journeysapp.ui.details.DetailsViewModel.NavEvent.Finish
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,8 +24,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
-    private val repository: JourneyRepository,
-    private val savedStateHandle: SavedStateHandle
+    private val journeyRepository: JourneyRepository,
+    private val historyRepository: GoalHistoryRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _navEvent = MutableSharedFlow<NavEvent>()
 
@@ -34,20 +37,23 @@ class DetailsViewModel @Inject constructor(
     val uiState: StateFlow<UIState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            val journeyId: Long? = savedStateHandle[DetailsActivity.EXTRA_JOURNEY_ID]
-            journeyId?.let {
-                repository.getJourneyFlow(it)
+        val journeyId: Long? = savedStateHandle[DetailsActivity.EXTRA_JOURNEY_ID]
+
+        journeyId?.let {
+            viewModelScope.launch {
+                journeyRepository.getJourneyFlow(it)
                     .catch {
                         Timber.e(it)
                         _navEvent.emit(Finish)
-                    }.stateIn(
-                        viewModelScope,
-                        SharingStarted.WhileSubscribed(5000L),
-                        null
-                    ).collect {
-                        _uiState.value = _uiState.value.copy(journey = it)
-                    }
+                    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), null)
+                    .collect { _uiState.value = _uiState.value.copy(journey = it) }
+            }
+
+            viewModelScope.launch {
+                historyRepository.getGoalHistoryFlow(it)
+                    .catch { Timber.e(it) }
+                    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
+                    .collect { _uiState.value = _uiState.value.copy(goalHistory = it) }
             }
         }
     }
@@ -91,7 +97,7 @@ class DetailsViewModel @Inject constructor(
 
             UIEvent.OnJourneyDeleted -> viewModelScope.launch {
                 uiState.value.journey?.let {
-                    repository.deleteJourney(it)
+                    journeyRepository.deleteJourney(it)
                 }
 
                 _navEvent.emit(Finish)
@@ -99,7 +105,7 @@ class DetailsViewModel @Inject constructor(
 
             UIEvent.OnGoalReset -> viewModelScope.launch {
                 uiState.value.journey?.let {
-                    repository.resetGoalProgress(it.uid)
+                    journeyRepository.resetGoalProgress(it.uid)
 
                     _uiState.value = _uiState.value.copy(
                         contextMenuSheetOpen = false,
@@ -109,7 +115,7 @@ class DetailsViewModel @Inject constructor(
             }
 
             is UIEvent.OnJourneyEdited -> viewModelScope.launch {
-                repository.updateJourney(event.journey)
+                journeyRepository.updateJourney(event.journey)
 
                 _uiState.value = _uiState.value.copy(
                     editSheetShowing = false
@@ -119,13 +125,13 @@ class DetailsViewModel @Inject constructor(
             UIEvent.OnGoalDecremented -> viewModelScope.launch {
                 val journey = uiState.value.journey ?: return@launch
 
-                repository.incrementGoalProgress(journey.uid, -1)
+                journeyRepository.incrementGoalProgress(journey.uid, -1)
             }
 
             UIEvent.OnGoalIncremented -> viewModelScope.launch {
                 val journey = uiState.value.journey ?: return@launch
 
-                repository.incrementGoalProgress(journey.uid)
+                journeyRepository.incrementGoalProgress(journey.uid)
             }
         }
     }
@@ -160,6 +166,7 @@ class DetailsViewModel @Inject constructor(
 
     data class UIState(
         val journey: Journey? = null,
+        val goalHistory: List<GoalHistory> = emptyList(),
         val contextMenuSheetOpen: Boolean = false,
         val editSheetShowing: Boolean = false,
         val editSheetIconPickerShowing: Boolean = false,
