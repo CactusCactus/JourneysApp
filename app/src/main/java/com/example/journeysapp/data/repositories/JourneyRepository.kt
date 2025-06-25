@@ -55,6 +55,13 @@ class JourneyRepository @Inject constructor(private val dao: JourneyDao) {
             }
         }
 
+    suspend fun decrementGoalProgress(journeyId: Long, amount: Int = 1): Int =
+        withContext(Dispatchers.IO) {
+            dao.decrementGoalProgress(journeyId, amount).also {
+                Timber.d("Decremented goal progress for $it journeys with id=$journeyId")
+            }
+        }
+
     suspend fun resetGoalProgress(journeyId: Long) = withContext(Dispatchers.IO) {
         dao.resetGoalProgress(journeyId).also {
             Timber.d("Reset goal progress for $it journeys with id=$journeyId")

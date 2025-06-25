@@ -125,7 +125,7 @@ class DetailsViewModel @Inject constructor(
             UIEvent.OnGoalDecremented -> viewModelScope.launch {
                 val journey = uiState.value.journey ?: return@launch
 
-                journeyRepository.incrementGoalProgress(journey.uid, -1)
+                journeyRepository.decrementGoalProgress(journey.uid)
             }
 
             UIEvent.OnGoalIncremented -> viewModelScope.launch {
