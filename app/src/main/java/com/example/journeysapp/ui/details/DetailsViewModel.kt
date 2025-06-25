@@ -4,9 +4,11 @@ import android.app.Activity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkManager
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.repositories.JourneyRepository
 import com.example.journeysapp.ui.details.DetailsViewModel.NavEvent.Finish
+import com.example.journeysapp.util.registerUpdatesForSuccessfulWorks
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     private val repository: JourneyRepository,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    workManager: WorkManager
 ) : ViewModel() {
     private val _navEvent = MutableSharedFlow<NavEvent>()
 
@@ -37,6 +40,12 @@ class DetailsViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(journey = repository.getJourney(it))
             } ?: run {
                 _navEvent.emit(Finish(Activity.RESULT_CANCELED))
+            }
+        }
+
+        workManager.registerUpdatesForSuccessfulWorks(viewModelScope) {
+            uiState.value.journey?.uid?.let {
+                _uiState.value = _uiState.value.copy(journey = repository.getJourney(it))
             }
         }
     }

@@ -6,17 +6,21 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.journeysapp.BuildConfig
+import com.example.journeysapp.data.dao.GoalHistoryDao
 import com.example.journeysapp.data.dao.JourneyDao
+import com.example.journeysapp.data.model.DateConverter
 import com.example.journeysapp.data.model.GoalFrequencyTypeConverter
+import com.example.journeysapp.data.model.GoalHistory
 import com.example.journeysapp.data.model.GoalTypeConverter
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyIconTypeConverter
 
-@Database(entities = [Journey::class], version = 1)
+@Database(entities = [Journey::class, GoalHistory::class], version = 1)
 @TypeConverters(
     JourneyIconTypeConverter::class,
     GoalFrequencyTypeConverter::class,
-    GoalTypeConverter::class
+    GoalTypeConverter::class,
+    DateConverter::class
 )
 abstract class AppDatabase : RoomDatabase() {
     companion object {
@@ -32,4 +36,6 @@ abstract class AppDatabase : RoomDatabase() {
     }
 
     abstract fun journeyDao(): JourneyDao
+
+    abstract fun goalHistoryDao(): GoalHistoryDao
 }

@@ -52,14 +52,14 @@ class App : Application(), Configuration.Provider {
 
         val resetRequest = PeriodicWorkRequestBuilder<ResetGoalProgressWorker>(
             repeatInterval = repeatInterval,
-            repeatIntervalTimeUnit = TimeUnit.SECONDS
+            repeatIntervalTimeUnit = TimeUnit.MINUTES
         )
-            .setInitialDelay(calculateDelayUntilMidnight(), TimeUnit.MILLISECONDS)
+//            .setInitialDelay(calculateDelayUntilMidnight(), TimeUnit.MILLISECONDS)
             .setInputData(inputData)
             .build()
 
         WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-            uniqueWorkName = "${frequency.name}_GoalResetWork",
+            uniqueWorkName = ResetGoalProgressWorker.getUniqueWorkName(frequency),
             existingPeriodicWorkPolicy = ExistingPeriodicWorkPolicy.UPDATE,
             request = resetRequest
         )

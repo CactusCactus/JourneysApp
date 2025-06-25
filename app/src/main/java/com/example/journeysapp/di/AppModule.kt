@@ -1,6 +1,7 @@
 package com.example.journeysapp.di
 
 import android.content.Context
+import androidx.work.WorkManager
 import com.example.journeysapp.data.AppDatabase
 import dagger.Module
 import dagger.Provides
@@ -19,5 +20,14 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideWorkManager(@ApplicationContext appContext: Context) =
+        WorkManager.getInstance(appContext)
+
+    @Provides
+    @Singleton
     fun provideJourneyDao(appDatabase: AppDatabase) = appDatabase.journeyDao()
+
+    @Provides
+    @Singleton
+    fun provideGoalDao(appDatabase: AppDatabase) = appDatabase.goalHistoryDao()
 }
