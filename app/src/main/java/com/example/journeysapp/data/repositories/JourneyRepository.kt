@@ -3,6 +3,7 @@ package com.example.journeysapp.data.repositories
 import com.example.journeysapp.data.dao.JourneyDao
 import com.example.journeysapp.data.model.Journey
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -18,10 +19,20 @@ class JourneyRepository @Inject constructor(private val dao: JourneyDao) {
         return@withContext dao.get(journeyId)
     }
 
+    suspend fun getJourneyFlow(journeyId: Long) = withContext(Dispatchers.IO) {
+        return@withContext dao.getAsFlow(journeyId)
+    }
+
 
     suspend fun getAllJourneys(): List<Journey> = withContext(Dispatchers.IO) {
         return@withContext dao.getAll().also {
-            Timber.d("Fetched ${it.size} categories.")
+            Timber.d("Fetched ${it.size} journeys.")
+        }
+    }
+
+    suspend fun getAllJourneysFlow(): Flow<List<Journey>> = withContext(Dispatchers.IO) {
+        return@withContext dao.getAllAsFlow().also {
+            Timber.d("Fetching journeys as a Flow")
         }
     }
 
@@ -37,7 +48,7 @@ class JourneyRepository @Inject constructor(private val dao: JourneyDao) {
         }
     }
 
-    suspend fun incrementGoalProgress(journeyId: Long, amount: Int = 1) : Int =
+    suspend fun incrementGoalProgress(journeyId: Long, amount: Int = 1): Int =
         withContext(Dispatchers.IO) {
             dao.incrementGoalProgress(journeyId, amount).also {
                 Timber.d("Incremented goal progress for $it journeys with id=$journeyId")

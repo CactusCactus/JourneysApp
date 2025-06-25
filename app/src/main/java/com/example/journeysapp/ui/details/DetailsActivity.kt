@@ -118,10 +118,7 @@ class DetailsActivity : ComponentActivity() {
         LaunchedEffect(key1 = true) {
             viewModel.navEvent.collect { event ->
                 when (event) {
-                    is DetailsViewModel.NavEvent.Finish -> {
-                        setResult(event.resultCode)
-                        finish()
-                    }
+                    is DetailsViewModel.NavEvent.Finish -> finish()
                 }
             }
         }

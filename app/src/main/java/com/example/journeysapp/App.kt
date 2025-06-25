@@ -52,9 +52,9 @@ class App : Application(), Configuration.Provider {
 
         val resetRequest = PeriodicWorkRequestBuilder<ResetGoalProgressWorker>(
             repeatInterval = repeatInterval,
-            repeatIntervalTimeUnit = TimeUnit.MINUTES
+            repeatIntervalTimeUnit = TimeUnit.DAYS
         )
-//            .setInitialDelay(calculateDelayUntilMidnight(), TimeUnit.MILLISECONDS)
+            .setInitialDelay(calculateDelayUntilMidnight(), TimeUnit.MILLISECONDS)
             .setInputData(inputData)
             .build()
 
@@ -64,7 +64,11 @@ class App : Application(), Configuration.Provider {
             request = resetRequest
         )
 
-        Timber.d("Scheduled goal reset worker for ${frequency.name} set up")
+        Timber.d(
+            "Scheduled goal reset worker for ${frequency.name} set up, unique work name is ${
+                ResetGoalProgressWorker.getUniqueWorkName(frequency)
+            }"
+        )
     }
 
     private fun calculateDelayUntilMidnight(): Long {

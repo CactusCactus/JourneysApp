@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,13 +31,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
-
-    private val detailsResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == RESULT_OK) {
-                viewModel.onEvent(UIEvent.Refresh)
-            }
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,7 +73,7 @@ class MainActivity : ComponentActivity() {
             viewModel.navEvent.collect { event ->
                 when (event) {
                     is NavEvent.ToJourneyDetails -> {
-                        detailsResult.launch(
+                        startActivity(
                             DetailsActivity.newIntent(this@MainActivity, event.journeyId)
                         )
                     }

@@ -1,7 +1,6 @@
 package com.example.journeysapp.di
 
 import android.content.Context
-import androidx.work.WorkManager
 import com.example.journeysapp.data.AppDatabase
 import dagger.Module
 import dagger.Provides
@@ -17,11 +16,6 @@ object AppModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext appContext: Context) =
         AppDatabase.builder(appContext).build()
-
-    @Provides
-    @Singleton
-    fun provideWorkManager(@ApplicationContext appContext: Context) =
-        WorkManager.getInstance(appContext)
 
     @Provides
     @Singleton

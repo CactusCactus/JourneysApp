@@ -3,28 +3,27 @@ package com.example.journeysapp.ui.main
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.WorkManager
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.repositories.JourneyRepository
 import com.example.journeysapp.ui.main.NavEvent.ToJourneyDetails
-import com.example.journeysapp.util.registerUpdatesForSuccessfulWorks
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class MainViewModel @Inject constructor(
-    private val repository: JourneyRepository,
-    workManager: WorkManager
-) : ViewModel() {
+class MainViewModel @Inject constructor(private val repository: JourneyRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
 
     private val _navEvent = MutableSharedFlow<NavEvent>()
@@ -41,11 +40,16 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            refreshJourneys()
-        }
-
-        workManager.registerUpdatesForSuccessfulWorks(viewModelScope) {
-            refreshJourneys()
+            repository.getAllJourneysFlow()
+                .catch { Timber.e(it) }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000L),
+                    initialValue = emptyList()
+                ).collect {
+                    journeyList.clear()
+                    journeyList.addAll(it)
+                }
         }
     }
 
@@ -59,11 +63,7 @@ class MainViewModel @Inject constructor(
                 _uiState.value.copy(addBottomSheetOpen = false)
 
             is UIEvent.OnJourneyCreated -> viewModelScope.launch {
-                val id = repository.insertJourney(event.journey)
-
-                if (id != -1L) {
-                    journeyList.add(event.journey.copy(uid = id))
-                }
+                repository.insertJourney(event.journey)
             }
 
             // Journey context menu events
@@ -84,7 +84,6 @@ class MainViewModel @Inject constructor(
 
             is UIEvent.OnJourneyDeleted -> viewModelScope.launch {
                 repository.deleteJourney(event.journey)
-                journeyList.remove(event.journey)
 
                 _uiState.value = _uiState.value.copy(
                     contextMenuSheetOpen = false,
@@ -104,33 +103,16 @@ class MainViewModel @Inject constructor(
 
             is UIEvent.OnJourneyEdited -> viewModelScope.launch {
                 repository.updateJourney(event.journey)
-
-                editedJourney?.let {
-                    updateJourneyLocally(it, event.journey)
-                    editedJourney = null
-                }
+                editedJourney = null
             }
 
             // Handle goals
             is UIEvent.OnGoalIncremented -> viewModelScope.launch {
-                val result = repository.incrementGoalProgress(event.journey.uid)
-
-                if (result > 0) {
-                    val goal = event.journey.goal.copy(progress = event.journey.goal.progress + 1)
-                    updateJourneyLocally(
-                        event.journey,
-                        event.journey.copy(goal = goal)
-                    )
-                }
+                repository.incrementGoalProgress(event.journey.uid)
             }
 
             is UIEvent.OnGoalReset -> viewModelScope.launch {
                 repository.resetGoalProgress(event.journey.uid)
-                val goal = event.journey.goal.copy(progress = 0)
-                updateJourneyLocally(
-                    event.journey,
-                    event.journey.copy(goal = goal)
-                )
 
                 _uiState.value = _uiState.value.copy(
                     contextMenuSheetOpen = false,
@@ -150,21 +132,7 @@ class MainViewModel @Inject constructor(
             is UIEvent.OnJourneyDetailsClick -> viewModelScope.launch {
                 _navEvent.emit(ToJourneyDetails(event.journey.uid))
             }
-
-            UIEvent.Refresh -> viewModelScope.launch {
-                journeyList.clear()
-                journeyList.addAll(repository.getAllJourneys())
-            }
         }
-    }
-
-    private fun updateJourneyLocally(oldJourney: Journey, newJourney: Journey) {
-        journeyList[journeyList.indexOf(oldJourney)] = newJourney
-    }
-
-    private suspend fun refreshJourneys() {
-        journeyList.clear()
-        journeyList.addAll(repository.getAllJourneys())
     }
 }
 
@@ -181,8 +149,6 @@ data class UiState(
 )
 
 sealed interface UIEvent {
-    data object Refresh : UIEvent
-
     data object OnJourneyAddClick : UIEvent
 
     data object OnAddSheetDismiss : UIEvent

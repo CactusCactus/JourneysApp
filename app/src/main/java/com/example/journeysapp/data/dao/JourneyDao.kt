@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Update
 import com.example.journeysapp.data.model.GoalFrequency
 import com.example.journeysapp.data.model.Journey
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface JourneyDao {
@@ -16,8 +17,14 @@ interface JourneyDao {
     @Query("SELECT * FROM journey WHERE uid = :journeyId")
     fun get(journeyId: Long): Journey
 
+    @Query("SELECT * FROM journey WHERE uid = :journeyId")
+    fun getAsFlow(journeyId: Long): Flow<Journey>
+
     @Query("SELECT * FROM journey")
     fun getAll(): List<Journey>
+
+    @Query("SELECT * FROM journey")
+    fun getAllAsFlow(): Flow<List<Journey>>
 
     @Query("SELECT * FROM journey WHERE goal_frequency = :frequency")
     fun getAllWithFrequency(frequency: GoalFrequency): List<Journey>

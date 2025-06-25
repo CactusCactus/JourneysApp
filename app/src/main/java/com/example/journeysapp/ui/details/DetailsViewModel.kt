@@ -1,29 +1,29 @@
 package com.example.journeysapp.ui.details
 
-import android.app.Activity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.WorkManager
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.repositories.JourneyRepository
 import com.example.journeysapp.ui.details.DetailsViewModel.NavEvent.Finish
-import com.example.journeysapp.util.registerUpdatesForSuccessfulWorks
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     private val repository: JourneyRepository,
-    private val savedStateHandle: SavedStateHandle,
-    workManager: WorkManager
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _navEvent = MutableSharedFlow<NavEvent>()
 
@@ -37,15 +37,17 @@ class DetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val journeyId: Long? = savedStateHandle[DetailsActivity.EXTRA_JOURNEY_ID]
             journeyId?.let {
-                _uiState.value = _uiState.value.copy(journey = repository.getJourney(it))
-            } ?: run {
-                _navEvent.emit(Finish(Activity.RESULT_CANCELED))
-            }
-        }
-
-        workManager.registerUpdatesForSuccessfulWorks(viewModelScope) {
-            uiState.value.journey?.uid?.let {
-                _uiState.value = _uiState.value.copy(journey = repository.getJourney(it))
+                repository.getJourneyFlow(it)
+                    .catch {
+                        Timber.e(it)
+                        _navEvent.emit(Finish)
+                    }.stateIn(
+                        viewModelScope,
+                        SharingStarted.WhileSubscribed(5000L),
+                        null
+                    ).collect {
+                        _uiState.value = _uiState.value.copy(journey = it)
+                    }
             }
         }
     }
@@ -92,16 +94,14 @@ class DetailsViewModel @Inject constructor(
                     repository.deleteJourney(it)
                 }
 
-                _navEvent.emit(Finish(Activity.RESULT_OK))
+                _navEvent.emit(Finish)
             }
 
             UIEvent.OnGoalReset -> viewModelScope.launch {
                 uiState.value.journey?.let {
                     repository.resetGoalProgress(it.uid)
-                    val goal = it.goal.copy(progress = 0)
 
                     _uiState.value = _uiState.value.copy(
-                        journey = it.copy(goal = goal),
                         contextMenuSheetOpen = false,
                         confirmResetDialogShowing = false
                     )
@@ -112,7 +112,6 @@ class DetailsViewModel @Inject constructor(
                 repository.updateJourney(event.journey)
 
                 _uiState.value = _uiState.value.copy(
-                    journey = event.journey,
                     editSheetShowing = false
                 )
             }
@@ -120,23 +119,13 @@ class DetailsViewModel @Inject constructor(
             UIEvent.OnGoalDecremented -> viewModelScope.launch {
                 val journey = uiState.value.journey ?: return@launch
 
-                val changedRows = repository.incrementGoalProgress(journey.uid, -1)
-
-                if (changedRows > 0) {
-                    val goal = journey.goal.copy(progress = journey.goal.progress - 1)
-                    _uiState.value = _uiState.value.copy(journey = journey.copy(goal = goal))
-                }
+                repository.incrementGoalProgress(journey.uid, -1)
             }
 
             UIEvent.OnGoalIncremented -> viewModelScope.launch {
                 val journey = uiState.value.journey ?: return@launch
 
-                val changedRows = repository.incrementGoalProgress(journey.uid)
-
-                if (changedRows > 0) {
-                    val goal = journey.goal.copy(progress = journey.goal.progress + 1)
-                    _uiState.value = _uiState.value.copy(journey = journey.copy(goal = goal))
-                }
+                repository.incrementGoalProgress(journey.uid)
             }
         }
     }
@@ -179,6 +168,6 @@ class DetailsViewModel @Inject constructor(
     )
 
     sealed interface NavEvent {
-        data class Finish(val resultCode: Int = Activity.RESULT_CANCELED) : NavEvent
+        object Finish : NavEvent
     }
 }
