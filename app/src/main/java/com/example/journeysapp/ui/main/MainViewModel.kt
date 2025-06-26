@@ -156,7 +156,9 @@ class MainViewModel @Inject constructor(
                     started = SharingStarted.WhileSubscribed(5000L),
                     initialValue = null
                 ).collect {
-                    it?.let {
+                    val newSortMode = it
+
+                    if(newSortMode != _uiState.value.sortMode && newSortMode != null) {
                         _uiState.value = _uiState.value.copy(sortMode = it)
                         sortAndRefreshList(newSortMode = it)
                     }

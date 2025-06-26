@@ -1,5 +1,6 @@
 package com.example.journeysapp.ui.common
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.scaleIn
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -53,6 +55,7 @@ fun StepsProgressIndicator(
     }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope") // It actually uses maxWidth, no reason for error
 @Composable
 fun StepsOverflowProgressIndicator(
     checkedSteps: Int,
@@ -62,7 +65,10 @@ fun StepsOverflowProgressIndicator(
     overflowStepSize: Dp = 24.dp,
     stepSpacing: Dp = 4.dp
 ) {
-    BoxWithConstraints(modifier = modifier) {
+    BoxWithConstraints(
+        modifier = modifier.height(overflowStepSize),
+        contentAlignment = Alignment.CenterStart
+    ) {
         val availableWidth = maxWidth
         val stepWidthWithSpacing = stepSize + stepSpacing
 

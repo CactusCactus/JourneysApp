@@ -8,7 +8,7 @@ import com.example.journeysapp.R
 enum class JourneyContextMenuOption(
     @StringRes val label: Int,
     @DrawableRes val icon: Int,
-    @ColorRes val tint: Int = R.color.black
+    @ColorRes val overrideTint: Int? = null
 ) {
     EDIT(R.string.edit, R.drawable.ic_edit_24),
     RESET(R.string.goal_reset_progress, R.drawable.ic_refresh_24),

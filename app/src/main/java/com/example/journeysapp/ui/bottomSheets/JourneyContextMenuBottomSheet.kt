@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.example.journeysapp.data.model.Journey
 import com.example.journeysapp.data.model.internal.JourneyContextMenuOption
 import com.example.journeysapp.ui.common.StandardListRow
+import com.example.journeysapp.ui.theme.StandardDoubleSpacer
 import com.example.journeysapp.ui.theme.standardPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,6 +46,8 @@ fun JourneyContextMenuBottomSheet(
                     })
                 }
             }
+
+            StandardDoubleSpacer()
         }
     }
 }
@@ -54,7 +57,7 @@ fun JourneyContextMenuRow(option: JourneyContextMenuOption, modifier: Modifier =
     StandardListRow(
         label = stringResource(option.label),
         icon = option.icon,
-        iconTint = option.tint,
+        iconTint = option.overrideTint,
         modifier = modifier,
     )
 }

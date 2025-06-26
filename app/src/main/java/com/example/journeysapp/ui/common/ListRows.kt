@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,11 +30,13 @@ fun StandardListRow(
             .fillMaxWidth()
             .padding(standardPadding)
     ) {
-        if (icon != null && iconTint != null) {
+        val tint = iconTint?.let { colorResource(it) } ?: LocalContentColor.current
+
+        if (icon != null) {
             Icon(
                 painter = painterResource(icon),
                 contentDescription = "$label icon",
-                tint = colorResource(iconTint)
+                tint = tint
             )
         }
         StandardSpacer()
