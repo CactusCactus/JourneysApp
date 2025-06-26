@@ -146,7 +146,7 @@ class DetailsActivity : ComponentActivity() {
 
             StandardSpacer()
 
-            if (uiState.goalHistory.isNotEmpty()) {
+            if (uiState.goalHistory.size > 1) {
                 Text(
                     text = stringResource(R.string.graph_label),
                     style = MaterialTheme.typography.titleLarge,

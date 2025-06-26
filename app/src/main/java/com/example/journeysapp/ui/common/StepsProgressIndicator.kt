@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -41,16 +40,16 @@ fun StepsProgressIndicator(
     stepSize: Dp = 16.dp,
     stepSpacing: Dp = 4.dp
 ) {
-    FlowRow(modifier = modifier, verticalArrangement = Arrangement.spacedBy(stepSpacing)) {
+    FlowRow(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(stepSpacing),
+        horizontalArrangement = Arrangement.spacedBy(stepSpacing)
+    ) {
         var currentlyCheckedSteps = remember { 0f }
 
         repeat(maxSteps) {
             StepDot(checked = currentlyCheckedSteps < checkedSteps, stepSize = stepSize)
             currentlyCheckedSteps++
-
-            if (currentlyCheckedSteps < maxSteps) {
-                Spacer(modifier = Modifier.size(stepSpacing))
-            }
         }
     }
 }
