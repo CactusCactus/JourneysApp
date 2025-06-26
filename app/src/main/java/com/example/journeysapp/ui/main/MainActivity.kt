@@ -51,10 +51,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 Scaffold(
-                    topBar = { MainTopBar() }, bottomBar = {
-                        MainBottomBar(onAddClick = {
-                            viewModel.onEvent(UIEvent.OnJourneyAddClick)
-                        })
+                    topBar = { MainTopBar() },
+                    bottomBar = {
+                        MainBottomBar(
+                            onAddClick = {
+                                viewModel.onEvent(UIEvent.OnJourneyAddClick)
+                            },
+                            onSortModeChanged = {
+                                viewModel.onEvent(UIEvent.SortModeChanged(it))
+                            },
+                            initialSortMode = viewModel.uiState.collectAsState().value.sortMode
+                        )
                     }, modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     AnimatedVisibility(
