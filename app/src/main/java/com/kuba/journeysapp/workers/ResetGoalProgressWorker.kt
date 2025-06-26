@@ -52,7 +52,8 @@ class ResetGoalProgressWorker @AssistedInject constructor(
             Timber.d("Starting to reset goals of frequency ${frequency.name} progress work.")
             val journeysToReset = journeyDao.getAllWithFrequency(frequency)
 
-            if (journeysToReset.isEmpty()) {
+            // Nothing to reset
+            if (journeysToReset.isEmpty() || journeysToReset.all { it.goal.progress == 0 }) {
                 return Result.failure()
             }
 
