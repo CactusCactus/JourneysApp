@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.journeysapp"
+    namespace = "com.kuba.journeysapp"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.journeysapp"
+        applicationId = "com.kuba.journeysapp"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
