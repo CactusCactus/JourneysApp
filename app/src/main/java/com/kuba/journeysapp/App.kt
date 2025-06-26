@@ -51,7 +51,7 @@ class App : Application(), Configuration.Provider {
             putString(ResetGoalProgressWorker.KEY_FREQUENCY, frequency.name)
         }.build()
 
-        val initialDelay = repeatInterval - 1 + calculateDelayUntilMidnight()
+        val initialDelay = daysToMilliseconds(repeatInterval - 1) + calculateDelayUntilMidnight()
 
         val resetRequest = PeriodicWorkRequestBuilder<ResetGoalProgressWorker>(
             repeatInterval = repeatInterval,
