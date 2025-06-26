@@ -40,6 +40,6 @@ fun StandardListRow(
             )
         }
         StandardSpacer()
-        Text(text = label, style = MaterialTheme.typography.titleLarge)
+        Text(text = label, style = MaterialTheme.typography.bodyLarge)
     }
 }
