@@ -103,7 +103,8 @@ fun EditJourneyBottomSheet(
         journeyIcon = journey.icon,
         journeyGoal = journey.goal,
         modifier = modifier,
-        startWithOpenedIconsPicker = startWithOpenedIconsPicker
+        startWithOpenedIconsPicker = startWithOpenedIconsPicker,
+        resetWarningShowing = true
     )
 }
 
@@ -125,7 +126,8 @@ private fun ModifyJourneyBottomSheet(
         goalFrequency = GoalFrequency.DAILY
     ),
     namePlaceholder: String = stringResource(R.string.add_new_journey_hint),
-    startWithOpenedIconsPicker: Boolean = false
+    startWithOpenedIconsPicker: Boolean = false,
+    resetWarningShowing: Boolean = false
 ) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -199,7 +201,10 @@ private fun ModifyJourneyBottomSheet(
                     currentJourneyGoal = currentJourneyGoal.copy(goalType = it)
                 },
                 onValueChanged = {
-                    currentJourneyGoal = currentJourneyGoal.copy(value = it)
+                    currentJourneyGoal = currentJourneyGoal.copy(
+                        progress = 0,
+                        value = it
+                    )
                 },
                 onFrequencyChanged = {
                     currentJourneyGoal = currentJourneyGoal.copy(goalFrequency = it)
@@ -216,18 +221,32 @@ private fun ModifyJourneyBottomSheet(
                     && currentJourneyGoal.value < MAX_GOAL_VALUE
                     && currentJourneyGoal.unit.isNotBlank()
 
-            Button(
-                enabled = isGoalValid,
-                onClick = {
-                    onConfirmRequest(
-                        selectedJourneyName,
-                        selectedIcon,
-                        currentJourneyGoal
-                    )
-                },
-                modifier = Modifier.align(Alignment.End)
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(confirmButtonText)
+                if (resetWarningShowing) {
+                    Text(
+                        text = stringResource(R.string.edit_journey_progress_reset_warning),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Button(
+                    enabled = isGoalValid,
+                    onClick = {
+                        onConfirmRequest(
+                            selectedJourneyName,
+                            selectedIcon,
+                            currentJourneyGoal
+                        )
+                    }
+                ) {
+                    Text(confirmButtonText)
+                }
             }
 
             StandardSpacer()

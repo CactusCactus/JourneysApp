@@ -39,4 +39,5 @@
     <string name="sort_alphabetically_desc">Z-A</string>
     <string name="sort_progress_asc">Undone first</string>
     <string name="sort_progress_desc">Done first</string>
+    <string name="edit_journey_progress_reset_warning">Editing Journey\'s goal will restart it\'s progress!</string>
 </resources>
