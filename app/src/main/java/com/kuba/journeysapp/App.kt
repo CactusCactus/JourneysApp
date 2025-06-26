@@ -1,7 +1,10 @@
 package com.kuba.journeysapp
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.icu.util.Calendar
+import android.os.Build
 import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
@@ -22,12 +25,19 @@ class App : Application(), Configuration.Provider {
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
+    companion object {
+        const val GOAL_RESET_WORKER_NOTIFICATION_CHANNEL_ID =
+            "GOAL_RESET_WORKER_NOTIFICATION_CHANNEL_ID"
+    }
+
     override fun onCreate() {
         super.onCreate()
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
+
+        createWorkerNotificationChannel()
 
         scheduleGoalResetWorker(GoalFrequency.DAILY)
         scheduleGoalResetWorker(GoalFrequency.WEEKLY)
@@ -55,7 +65,7 @@ class App : Application(), Configuration.Provider {
 
         val resetRequest = PeriodicWorkRequestBuilder<ResetGoalProgressWorker>(
             repeatInterval = repeatInterval,
-            repeatIntervalTimeUnit = TimeUnit.DAYS
+            repeatIntervalTimeUnit = TimeUnit.MINUTES
         )
             .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
             .setInputData(inputData)
@@ -91,4 +101,18 @@ class App : Application(), Configuration.Provider {
     }
 
     private fun daysToMilliseconds(days: Long) = days * MILLISECONDS_IN_DAY
+
+    private fun createWorkerNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                GOAL_RESET_WORKER_NOTIFICATION_CHANNEL_ID,
+                getString(R.string.worker_notification_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+
+            val notificationManager = getSystemService(NotificationManager::class.java)
+                    as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
 }

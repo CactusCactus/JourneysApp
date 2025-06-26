@@ -40,4 +40,9 @@
     <string name="sort_progress_asc">Undone first</string>
     <string name="sort_progress_desc">Done first</string>
     <string name="edit_journey_progress_reset_warning">Editing Journey\'s goal will restart it\'s progress!</string>
+
+    <string name="worker_notification_channel_name">Journey goals progress summary</string>
+    <string name="worker_notification_channel_description">Shows notifications about goal progress</string>
+    <string name="goal_reset_completion">You did it!</string>
+    <string name="goal_reset_notification_title">Your %1$s progress</string>
 </resources>

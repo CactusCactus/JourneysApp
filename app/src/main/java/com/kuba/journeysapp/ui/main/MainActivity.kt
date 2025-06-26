@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import com.kuba.journeysapp.ui.common.ConfirmDialog
 import com.kuba.journeysapp.ui.details.DetailsActivity
 import com.kuba.journeysapp.ui.theme.AppTheme
 import com.kuba.journeysapp.ui.theme.standardPadding
+import com.kuba.journeysapp.util.askNotificationPermission
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -47,6 +49,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
+
+        askNotificationPermission(
+            this,
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+                // We don't do anything for now
+            }
+        )
 
         setContent {
             AppTheme {
