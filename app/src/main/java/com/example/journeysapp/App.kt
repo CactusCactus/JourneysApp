@@ -10,6 +10,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.journeysapp.data.model.GoalFrequency
+import com.example.journeysapp.util.MILLISECONDS_IN_DAY
 import com.example.journeysapp.workers.ResetGoalProgressWorker
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
@@ -50,11 +51,13 @@ class App : Application(), Configuration.Provider {
             putString(ResetGoalProgressWorker.KEY_FREQUENCY, frequency.name)
         }.build()
 
+        val initialDelay = repeatInterval - 1 + calculateDelayUntilMidnight()
+
         val resetRequest = PeriodicWorkRequestBuilder<ResetGoalProgressWorker>(
             repeatInterval = repeatInterval,
             repeatIntervalTimeUnit = TimeUnit.DAYS
         )
-            .setInitialDelay(calculateDelayUntilMidnight(), TimeUnit.MILLISECONDS)
+            .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
             .setInputData(inputData)
             .build()
 
@@ -86,4 +89,6 @@ class App : Application(), Configuration.Provider {
 
         return calendar.timeInMillis - System.currentTimeMillis()
     }
+
+    private fun daysToMilliseconds(days: Long) = days * MILLISECONDS_IN_DAY
 }
