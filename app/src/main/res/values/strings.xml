@@ -35,4 +35,8 @@
     <string name="goal_value_error_above_max">Too high</string>
     <string name="goal_value_error_empty">Can\'t be empty</string>
     <string name="empty_state_label">Add your first Journey</string>
+    <string name="sort_alphabetically_asc">A-Z</string>
+    <string name="sort_alphabetically_desc">Z-A</string>
+    <string name="sort_progress_asc">Undone first</string>
+    <string name="sort_progress_desc">Done first</string>
 </resources>

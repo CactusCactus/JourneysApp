@@ -1,8 +1,12 @@
 package com.example.journeysapp.ui.main
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +32,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -36,13 +45,16 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.example.journeysapp.R
 import com.example.journeysapp.data.model.Journey
+import com.example.journeysapp.data.model.internal.SortMode
 import com.example.journeysapp.ui.common.StepsOverflowProgressIndicator
 import com.example.journeysapp.ui.theme.StandardSpacer
 import com.example.journeysapp.ui.theme.standardPadding
 import com.example.journeysapp.ui.theme.standardQuarterPadding
 import com.example.journeysapp.util.goalSummaryString
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,12 +70,19 @@ fun MainTopBar() {
 
 @Composable
 fun MainBottomBar(
-    onAddClick: () -> Unit, modifier: Modifier = Modifier
+    onAddClick: () -> Unit,
+    onSortModeChanged: (SortMode) -> Unit,
+    modifier: Modifier = Modifier,
+    initialSortMode: SortMode = SortMode.ALPHABETICALLY_ASC
 ) {
     BottomAppBar(
         actions = {
-            // TODO action for a group select
-        }, floatingActionButton = {
+            BottomBarSortIcon(
+                onSortModeChanged = onSortModeChanged,
+                initialSortMode = initialSortMode
+            )
+        },
+        floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddClick,
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -71,8 +90,69 @@ fun MainBottomBar(
             ) {
                 Icon(Icons.Filled.Add, "Add")
             }
-        }, modifier = modifier
+        },
+        modifier = modifier
     )
+}
+
+@Composable
+fun BottomBarSortIcon(
+    onSortModeChanged: (SortMode) -> Unit,
+    modifier: Modifier = Modifier,
+    initialSortMode: SortMode = SortMode.ALPHABETICALLY_ASC
+) {
+    val sortModes = SortMode.entries.toTypedArray()
+
+    var showSortModeText by remember { mutableStateOf(true) }
+    var currentSortMode by remember { mutableStateOf(initialSortMode) }
+
+    // This fixes problem with field keeping the old value at startup
+    currentSortMode = initialSortMode
+
+
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        IconButton(
+            onClick = {
+                val sortIndex = sortModes.indexOf(currentSortMode)
+
+                currentSortMode = if (sortIndex == sortModes.lastIndex) {
+                    sortModes.first()
+                } else {
+                    sortModes[sortIndex + 1]
+                }
+
+                onSortModeChanged(currentSortMode)
+                showSortModeText = true
+            }, modifier = Modifier
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .zIndex(1f)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_sort_24),
+                contentDescription = "Sort button",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+
+        if (showSortModeText) {
+            LaunchedEffect(currentSortMode) {
+                delay(1000L)
+                //showSortModeText = false
+            }
+        }
+
+        AnimatedVisibility(
+            visible = showSortModeText,
+            enter = slideInHorizontally() + fadeIn(),
+            exit = slideOutHorizontally() + fadeOut()
+        ) {
+            Text(
+                currentSortMode.toString(LocalContext.current),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
 }
 
 @Composable

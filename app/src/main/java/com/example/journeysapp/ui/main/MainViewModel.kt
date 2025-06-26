@@ -4,7 +4,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.journeysapp.data.model.Journey
+import com.example.journeysapp.data.model.internal.SortMode
+import com.example.journeysapp.data.model.internal.sortedBy
 import com.example.journeysapp.data.repositories.JourneyRepository
+import com.example.journeysapp.data.repositories.UserPreferencesRepository
 import com.example.journeysapp.ui.main.NavEvent.ToJourneyDetails
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,7 +26,10 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class MainViewModel @Inject constructor(private val repository: JourneyRepository) : ViewModel() {
+class MainViewModel @Inject constructor(
+    private val repository: JourneyRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
 
     private val _navEvent = MutableSharedFlow<NavEvent>()
@@ -39,18 +45,7 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
     private var editedJourney: Journey? = null
 
     init {
-        viewModelScope.launch {
-            repository.getAllJourneysFlow()
-                .catch { Timber.e(it) }
-                .stateIn(
-                    scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5000L),
-                    initialValue = emptyList()
-                ).collect {
-                    journeyList.clear()
-                    journeyList.addAll(it)
-                }
-        }
+        observeFlows()
     }
 
     fun onEvent(event: UIEvent) {
@@ -132,7 +127,50 @@ class MainViewModel @Inject constructor(private val repository: JourneyRepositor
             is UIEvent.OnJourneyDetailsClick -> viewModelScope.launch {
                 _navEvent.emit(ToJourneyDetails(event.journey.uid))
             }
+
+            // Sorting
+            is UIEvent.SortModeChanged -> viewModelScope.launch {
+                userPreferencesRepository.saveSortMode(event.sortMode)
+            }
         }
+    }
+
+    private fun observeFlows() {
+        viewModelScope.launch {
+            repository.getAllJourneysFlow()
+                .catch { Timber.e(it) }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000L),
+                    initialValue = emptyList()
+                ).collect {
+                    sortAndRefreshList(newItems = it)
+                }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.getSortModeFlow()
+                .catch { Timber.e(it) }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000L),
+                    initialValue = null
+                ).collect {
+                    it?.let {
+                        _uiState.value = _uiState.value.copy(sortMode = it)
+                        sortAndRefreshList(newSortMode = it)
+                    }
+                }
+        }
+    }
+
+    private fun sortAndRefreshList(
+        newItems: List<Journey> = this.journeyList,
+        newSortMode: SortMode = _uiState.value.sortMode
+    ) {
+        val journeyList = newItems.sortedBy(newSortMode)
+        this.journeyList.clear()
+        this.journeyList.addAll(journeyList)
     }
 }
 
@@ -145,7 +183,9 @@ data class UiState(
 
     val confirmDeleteDialogShowing: Boolean = false,
 
-    val confirmResetDialogShowing: Boolean = false
+    val confirmResetDialogShowing: Boolean = false,
+
+    val sortMode: SortMode = SortMode.ALPHABETICALLY_ASC
 )
 
 sealed interface UIEvent {
@@ -180,6 +220,8 @@ sealed interface UIEvent {
     data class OnGoalReset(val journey: Journey) : UIEvent
 
     data class OnJourneyDetailsClick(val journey: Journey) : UIEvent
+
+    data class SortModeChanged(val sortMode: SortMode) : UIEvent
 }
 
 sealed class NavEvent {
