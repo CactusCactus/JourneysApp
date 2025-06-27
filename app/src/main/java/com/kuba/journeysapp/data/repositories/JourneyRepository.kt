@@ -2,21 +2,23 @@ package com.kuba.journeysapp.data.repositories
 
 import com.kuba.journeysapp.data.dao.JourneyDao
 import com.kuba.journeysapp.data.model.Journey
+import com.kuba.journeysapp.data.model.internal.SortMode
+import com.kuba.journeysapp.data.model.internal.sortedBy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
-class JourneyRepository @Inject constructor(private val dao: JourneyDao) {
+class JourneyRepository @Inject constructor(
+    private val dao: JourneyDao,
+    private val userPreferencesRepository: UserPreferencesRepository
+) {
     suspend fun deleteJourney(journey: Journey) = withContext(Dispatchers.IO) {
         dao.delete(journey).also {
             Timber.d("Deleted Journey: id=$it, name=${journey.name}")
         }
-    }
-
-    suspend fun getJourney(journeyId: Long) = withContext(Dispatchers.IO) {
-        return@withContext dao.get(journeyId)
     }
 
     suspend fun getJourneyFlow(journeyId: Long) = withContext(Dispatchers.IO) {
@@ -30,9 +32,12 @@ class JourneyRepository @Inject constructor(private val dao: JourneyDao) {
         }
     }
 
-    suspend fun getAllJourneysFlow(): Flow<List<Journey>> = withContext(Dispatchers.IO) {
-        return@withContext dao.getAllAsFlow().also {
-            Timber.d("Fetching journeys as a Flow")
+    fun getAllJourneysSorted(): Flow<List<Journey>> {
+        val journeysFlow: Flow<List<Journey>> = dao.getAllAsFlow()
+        val sortModeFlow: Flow<SortMode> = userPreferencesRepository.getSortModeFlow()
+
+        return combine(journeysFlow, sortModeFlow) { journeys, currentSortMode ->
+            journeys.sortedBy(currentSortMode)
         }
     }
 

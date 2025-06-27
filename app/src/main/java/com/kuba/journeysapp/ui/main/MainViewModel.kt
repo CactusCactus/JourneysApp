@@ -1,16 +1,17 @@
 package com.kuba.journeysapp.ui.main
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kuba.journeysapp.data.model.Journey
 import com.kuba.journeysapp.data.model.internal.SortMode
-import com.kuba.journeysapp.data.model.internal.sortedBy
 import com.kuba.journeysapp.data.repositories.JourneyRepository
 import com.kuba.journeysapp.data.repositories.UserPreferencesRepository
 import com.kuba.journeysapp.ui.main.NavEvent.ToJourneyDetails
+import com.kuba.journeysapp.util.GOAL_DEBOUNCE_TIME_MS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -38,7 +39,13 @@ class MainViewModel @Inject constructor(
 
     val navEvent: SharedFlow<NavEvent> = _navEvent.asSharedFlow()
 
-    val journeyList = mutableStateListOf<Journey>()
+    private val _journeyList = MutableStateFlow<List<Journey>>(emptyList())
+
+    val journeyList: StateFlow<List<Journey>> = _journeyList.asStateFlow()
+
+    private val incrementJobs = mutableMapOf<Long, Job>()
+
+    private val pendingIncrements = mutableMapOf<Long, Int>()
 
     var contextSelectedJourney: Journey? = null
 
@@ -103,7 +110,7 @@ class MainViewModel @Inject constructor(
 
             // Handle goals
             is UIEvent.OnGoalIncremented -> viewModelScope.launch {
-                repository.incrementGoalProgress(event.journey.uid)
+                incrementLocallyAndUpdateWithDelay(event.journey)
             }
 
             is UIEvent.OnGoalReset -> viewModelScope.launch {
@@ -135,19 +142,50 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun observeFlows() {
-        viewModelScope.launch {
-            repository.getAllJourneysFlow()
-                .catch { Timber.e(it) }
-                .stateIn(
-                    scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5000L),
-                    initialValue = emptyList()
-                ).collect {
-                    sortAndRefreshList(newItems = it)
-                }
-        }
+    /* The goal is to delay update to Goal progress to avoid jumping UI when sorting by progress,
+    * and secondarily to reduce number of quick database writes */
+    private fun incrementLocallyAndUpdateWithDelay(journey: Journey) {
+        val itemIndex = _journeyList.value.indexOfFirst { it.uid == journey.uid }
+        val journeyId = journey.uid
 
+        if (itemIndex != -1) {
+            val currentJourney = _journeyList.value[itemIndex]
+
+            if (currentJourney.goal.progress < currentJourney.goal.value) {
+                val updatedJourney = currentJourney.copy(
+                    goal = currentJourney.goal.copy(progress = currentJourney.goal.progress + 1)
+                )
+
+                val localUpdatedList = _journeyList.value.toMutableList()
+                localUpdatedList[itemIndex] = updatedJourney
+                _journeyList.value = localUpdatedList
+
+                pendingIncrements[journeyId] = (pendingIncrements[journeyId] ?: 0) + 1
+
+                incrementJobs[journeyId]?.cancel()
+                incrementJobs[journeyId] = viewModelScope.launch {
+                    Timber.d("Incremented goal for ${updatedJourney.name} job started.")
+
+                    delay(GOAL_DEBOUNCE_TIME_MS)
+                    val totalIncrement = pendingIncrements.remove(journeyId)
+
+                    if (totalIncrement != null && totalIncrement > 0) {
+                        try {
+                            repository.incrementGoalProgress(journeyId, totalIncrement)
+                            Timber.d("Incremented goal by $totalIncrement for ${updatedJourney.name} job finished.")
+                        } catch (e: Exception) {
+                            Timber.e(
+                                e,
+                                "Error incrementing goal for ${updatedJourney.name} job."
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeFlows() {
         viewModelScope.launch {
             userPreferencesRepository.getSortModeFlow()
                 .catch { Timber.e(it) }
@@ -156,23 +194,36 @@ class MainViewModel @Inject constructor(
                     started = SharingStarted.WhileSubscribed(5000L),
                     initialValue = null
                 ).collect {
-                    val newSortMode = it
-
-                    if(newSortMode != _uiState.value.sortMode && newSortMode != null) {
+                    if (it != _uiState.value.sortMode && it != null) {
                         _uiState.value = _uiState.value.copy(sortMode = it)
-                        sortAndRefreshList(newSortMode = it)
                     }
                 }
         }
-    }
 
-    private fun sortAndRefreshList(
-        newItems: List<Journey> = this.journeyList,
-        newSortMode: SortMode = _uiState.value.sortMode
-    ) {
-        val journeyList = newItems.sortedBy(newSortMode)
-        this.journeyList.clear()
-        this.journeyList.addAll(journeyList)
+        viewModelScope.launch {
+            repository.getAllJourneysSorted()
+                .catch { exception ->
+                    Timber.e(exception, "Error collecting sorted journeys")
+                    emit(emptyList())
+                }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000L),
+                    initialValue = emptyList()
+                ).collect { newJourneyList ->
+                    val hasPendingIncrements = pendingIncrements.keys.any { pendingId ->
+                        journeyList.value.any { it.uid == pendingId }
+                    }
+
+                    if (!hasPendingIncrements || newJourneyList.size != _journeyList.value.size) {
+                        _journeyList.value = newJourneyList
+                    } else {
+                        incrementJobs.values.lastOrNull()?.invokeOnCompletion {
+                            _journeyList.value = newJourneyList
+                        }
+                    }
+                }
+        }
     }
 }
 

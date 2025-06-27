@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
                     }, modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     AnimatedVisibility(
-                        viewModel.journeyList.isEmpty(),
+                        viewModel.journeyList.collectAsState().value.isEmpty(),
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     JourneysLazyColumn(
-                        journeyList = viewModel.journeyList.toList(),
+                        journeyList = viewModel.journeyList.collectAsState().value,
                         onLongPress = {
                             viewModel.onEvent(UIEvent.OnJourneyContextMenuClick(it))
                         },
