@@ -65,9 +65,9 @@ class App : Application(), Configuration.Provider {
 
         val resetRequest = PeriodicWorkRequestBuilder<ResetGoalProgressWorker>(
             repeatInterval = repeatInterval,
-            repeatIntervalTimeUnit = TimeUnit.MINUTES
+            repeatIntervalTimeUnit = TimeUnit.DAYS
         )
-            .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+            .setInitialDelay(initialDelay, TimeUnit.DAYS)
             .setInputData(inputData)
             .build()
 
