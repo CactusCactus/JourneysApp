@@ -43,7 +43,7 @@ class MainViewModel @Inject constructor(
 
     val journeyList: StateFlow<List<Journey>> = _journeyList.asStateFlow()
 
-    private val incrementJobs = mutableMapOf<Long, Job>()
+    private var incrementJob: Job = Job()
 
     private val pendingIncrements = mutableMapOf<Long, Int>()
 
@@ -109,9 +109,7 @@ class MainViewModel @Inject constructor(
             }
 
             // Handle goals
-            is UIEvent.OnGoalIncremented -> viewModelScope.launch {
-                incrementLocallyAndUpdateWithDelay(event.journey)
-            }
+            is UIEvent.OnGoalIncremented -> incrementLocallyAndUpdateWithDelay(event.journey)
 
             is UIEvent.OnGoalReset -> viewModelScope.launch {
                 repository.resetGoalProgress(event.journey.uid)
@@ -162,24 +160,12 @@ class MainViewModel @Inject constructor(
 
                 pendingIncrements[journeyId] = (pendingIncrements[journeyId] ?: 0) + 1
 
-                incrementJobs[journeyId]?.cancel()
-                incrementJobs[journeyId] = viewModelScope.launch {
-                    Timber.d("Incremented goal for ${updatedJourney.name} job started.")
-
+                incrementJob.cancel()
+                incrementJob = viewModelScope.launch {
                     delay(GOAL_DEBOUNCE_TIME_MS)
-                    val totalIncrement = pendingIncrements.remove(journeyId)
 
-                    if (totalIncrement != null && totalIncrement > 0) {
-                        try {
-                            repository.incrementGoalProgress(journeyId, totalIncrement)
-                            Timber.d("Incremented goal by $totalIncrement for ${updatedJourney.name} job finished.")
-                        } catch (e: Exception) {
-                            Timber.e(
-                                e,
-                                "Error incrementing goal for ${updatedJourney.name} job."
-                            )
-                        }
-                    }
+                    repository.incrementGoalProgressBatch(pendingIncrements)
+                    pendingIncrements.clear()
                 }
             }
         }
@@ -218,9 +204,7 @@ class MainViewModel @Inject constructor(
                     if (!hasPendingIncrements || newJourneyList.size != _journeyList.value.size) {
                         _journeyList.value = newJourneyList
                     } else {
-                        incrementJobs.values.lastOrNull()?.invokeOnCompletion {
-                            _journeyList.value = newJourneyList
-                        }
+                        incrementJob.invokeOnCompletion { _journeyList.value = newJourneyList }
                     }
                 }
         }

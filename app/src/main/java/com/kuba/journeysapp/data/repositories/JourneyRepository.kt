@@ -60,8 +60,23 @@ class JourneyRepository @Inject constructor(
             }
         }
 
-    suspend fun decrementGoalProgress(journeyId: Long, amount: Int = 1): Int =
+    suspend fun incrementGoalProgressBatch(batchUpdate: Map<Long, Int>) =
         withContext(Dispatchers.IO) {
+            if (batchUpdate.isEmpty()) {
+                Timber.e("Batch update is empty")
+                return@withContext
+            }
+
+            batchUpdate.forEach { (journeyId, amount) ->
+                dao.incrementGoalProgress(journeyId, amount)
+            }
+
+            Timber.d("Incremented goal progress for ${batchUpdate.size} journeys")
+        }
+
+    suspend fun decrementGoalProgress(journeyId: Long, amount: Int = 1): Int =
+        withContext(Dispatchers.IO)
+        {
             dao.decrementGoalProgress(journeyId, amount).also {
                 Timber.d("Decremented goal progress for $it journeys with id=$journeyId")
             }
