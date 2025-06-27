@@ -68,29 +68,37 @@ fun StepsOverflowProgressIndicator(
         modifier = modifier.height(overflowStepSize),
         contentAlignment = Alignment.CenterStart
     ) {
-        val availableWidth = maxWidth
+        val availableWidth = maxWidth - overflowStepSize / 2
         val stepWidthWithSpacing = stepSize + stepSpacing
 
         val maxPossibleDisplayedSteps = if (stepWidthWithSpacing > 0.dp) {
-            floor((availableWidth - overflowStepSize + stepSpacing) / stepWidthWithSpacing).toInt()
+            floor((availableWidth + stepSpacing) / stepWidthWithSpacing).toInt()
         } else 0
 
         val uncheckedSteps = maxSteps - checkedSteps
         val halfPoint = maxPossibleDisplayedSteps / 2
 
-        val isOverflowStart = checkedSteps - halfPoint > 0
-        val isOverflowEnd = uncheckedSteps - halfPoint > 0
+        val isOverflowStart = checkedSteps - halfPoint > 0 && maxSteps > maxPossibleDisplayedSteps
+        val isOverflowEnd = uncheckedSteps - halfPoint > 0 && maxSteps > maxPossibleDisplayedSteps
 
         val overflowStartCount = if (isOverflowEnd) {
             checkedSteps - halfPoint
         } else {
-            maxSteps - maxPossibleDisplayedSteps + 1
+            val count = maxSteps - maxPossibleDisplayedSteps
+
+            if (isOverflowStart) {
+                count + 1
+            } else count
         }.coerceAtLeast(0)
 
         val overflowEndCount = if (isOverflowStart) {
             maxSteps - (maxPossibleDisplayedSteps + overflowStartCount) + 2
         } else {
-            maxSteps - maxPossibleDisplayedSteps + 1
+            val count = maxSteps - maxPossibleDisplayedSteps
+
+            if (isOverflowEnd) {
+                count + 1
+            } else count
         }.coerceAtLeast(0)
 
         var standardStepsCount = min(maxPossibleDisplayedSteps, maxSteps)
