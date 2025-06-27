@@ -227,7 +227,8 @@ fun JourneyRow(
                 Text(
                     item.goal.goalType.toCompletionString(LocalContext.current),
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.labelMedium
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1
                 )
             } else {
                 val goalString = item.goal.goalSummaryString(LocalContext.current)
