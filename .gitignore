@@ -11,6 +11,7 @@
 /.idea/deploymentTargetSelector.xml
 /.idea/misc.xml
 /.idea/studiobot.xml
+/app/release
 .DS_Store♦
 /build
 /captures
