@@ -20,6 +20,7 @@ import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 
@@ -34,7 +35,7 @@ fun GoalHistoryGraph(
         modelProducer.runTransaction {
             columnSeries {
                 series(
-                    x = goalHistory.map { it.resetTime.time },
+                    x = goalHistory.map { normalizeTime(it.resetTime.time) },
                     y = goalHistory.map { it.progress })
             }
         }
@@ -57,6 +58,14 @@ fun GoalHistoryGraph(
         )
     }
 }
+
+private fun normalizeTime(time: Long) = Calendar.getInstance().apply {
+    timeInMillis = time
+    set(Calendar.HOUR_OF_DAY, 0)
+    set(Calendar.MINUTE, 0)
+    set(Calendar.SECOND, 0)
+    set(Calendar.MILLISECOND, 0)
+}.timeInMillis
 
 private val BottomAxisValueFormatter =
     object : CartesianValueFormatter {
